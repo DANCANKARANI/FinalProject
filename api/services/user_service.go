@@ -3,8 +3,8 @@ package services
 import (
 	"errors"
 
-	"github.com/dancankarani/medicare/internal/app/database"
-	"github.com/dancankarani/medicare/internal/app/model"
+	"github.com/dancankarani/medicare/api/model"
+	"github.com/dancankarani/medicare/database"
 	"gorm.io/gorm"
 )
 

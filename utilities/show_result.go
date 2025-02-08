@@ -12,12 +12,12 @@ func ShowSuccess(c *fiber.Ctx, msg interface{}, code int, data interface{}) erro
     if data != nil {
         response["data"] = data
     }
-    return c.Status(code).JSON(response)
+    return c.JSON(response)
 }
 
 // ShowMessage responds with a simple success message
 func ShowMessage(c *fiber.Ctx, msg interface{}, code int) error {
-    return c.Status(code).JSON(fiber.Map{
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{
         "success":      true,
         "response_code": code,
         "message":      msg,

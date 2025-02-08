@@ -1,7 +1,7 @@
 package role
 
 import (
-	"github.com/dancankarani/medicare/internal/controller"
+	"github.com/dancankarani/medicare/api/controller"
 	"github.com/gofiber/fiber/v2"
 )
 

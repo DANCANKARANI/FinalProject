@@ -3,8 +3,8 @@ package controller
 import (
 	"log"
 
-	"github.com/dancankarani/medicare/internal/app/model"
-	"github.com/dancankarani/medicare/pkg/utilities"
+	"github.com/dancankarani/medicare/api/model"
+	"github.com/dancankarani/medicare/utilities"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )

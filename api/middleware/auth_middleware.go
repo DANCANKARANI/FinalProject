@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/dancankarani/medicare/internal/app/database"
+	"github.com/dancankarani/medicare/database"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"

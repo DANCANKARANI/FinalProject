@@ -101,6 +101,5 @@ func DeleteRole(roleID uuid.UUID) error {
 		log.Println("error deleting role:", err.Error())
 		return errors.New("error deleting role")
 	}
-
 	return nil
 }
