@@ -42,7 +42,7 @@ type Patient struct{
 //pharmacy db struct model
 type Pharmacist struct {
 	ID        uuid.UUID `json:"id" gorm:"type:varchar(36);primaryKey"`
-	UserID    uuid.UUID `json:"user_id" gorm:"type:varchar(36);not null;unique"`
+	UserID    uuid.UUID `json:"user_id" gorm:"type:varchar(36)"`
 	User      User      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`

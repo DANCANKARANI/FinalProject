@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/dancankarani/medicare/api/routes/admin/pharmacist"
 	"github.com/dancankarani/medicare/api/routes/patient"
 	"github.com/dancankarani/medicare/api/routes/role"
 	"github.com/dancankarani/medicare/api/routes/user"
@@ -19,6 +20,7 @@ func RegisterEndpoints() {
     user.SetUserRoutes(app)
     role.SetRoleRoutes(app)
     patient.SetPatientRoutes(app)
+    pharmacist.SetPahrmacistRoutes(app)
 
     //
     app.Listen(":8000")
