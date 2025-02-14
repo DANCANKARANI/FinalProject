@@ -7,5 +7,6 @@ import (
 func SetUserRoutes(app *fiber.App) {
 	auth := app.Group("/api/v1/users")
 	auth.Post("/",controller.CreatePatientHandler)
+	auth.Get("/:id",controller.GetUserHandler)
 	//protected routes
 }
