@@ -48,7 +48,7 @@ func EditPharmacistHandler(c *fiber.Ctx) error {
     }
 
     // Call EditUser to update the pharmacist's details
-    updated_pharmacist,err := model.EditUser(c, userID, updatedUser, true, false, "");
+    updated_pharmacist,err := model.EditUser(c, userID, updatedUser );
 	if err != nil {
         return utilities.ShowError(c, err.Error(), 0, nil)
     }
@@ -56,10 +56,3 @@ func EditPharmacistHandler(c *fiber.Ctx) error {
     return utilities.ShowSuccess(c, "Pharmacist updated successfully", 1, updated_pharmacist)
 }
 
-func GetPharmacistsHandler(c *fiber.Ctx) error {
-    users, err := model.GetPharmacists(c)
-    if err != nil {
-        return utilities.ShowError(c, err.Error(), fiber.StatusInternalServerError, nil)
-    }
-    return utilities.ShowSuccess(c, "Pharmacists fetched successfully", fiber.StatusOK, users)
-}

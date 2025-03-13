@@ -28,6 +28,10 @@ func GenerateRoleBasedUsername(role string) (string, error) {
             username = fmt.Sprintf("Admin@%s", randomCode)
         case "doctor":
             username = fmt.Sprintf("Doctor@%s", randomCode)
+        case "pharmacist":
+            username = fmt.Sprintf("Pharmacist@%s", randomCode)
+        case "receptionist":
+            username = fmt.Sprintf("Receptionist@%s", randomCode)
         // Add other roles as needed
         default:
             username = fmt.Sprintf("Staff@%s", randomCode)

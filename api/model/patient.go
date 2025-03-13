@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -14,30 +15,49 @@ import (
 
 func CreatePatient(c *fiber.Ctx) error {
 	var patient Patient
+
 	if err := c.BodyParser(&patient); err != nil {
+		log.Println("error registering patient:", err.Error())
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
 	}
+
 	errors := make(map[string][]string)
 
+	// Validate phone number
 	phone_number, err := utilities.ValidatePhoneNumber(patient.PhoneNumber, "KE")
 	if err != nil {
+		log.Println(err.Error())
 		errors["phone_number"] = append(errors["phone_number"], err.Error())
-		return utilities.ShowError(c, "Invalid phone number", fiber.StatusBadRequest, errors)
+		return utilities.ShowError(c, "Invalid phone number :"+phone_number, fiber.StatusBadRequest, errors)
 	}
 
+	// Manually parse `dob` from "YYYY-MM-DD"
+	if dobStr := c.FormValue("dob"); dobStr != "" {
+		parsedDOB, err := time.Parse("2006-01-02", dobStr) // Expecting "YYYY-MM-DD"
+		if err != nil {
+			log.Println("Error parsing date:", err)
+			errors["dob"] = append(errors["dob"], "Invalid date format. Expected YYYY-MM-DD")
+			return utilities.ShowError(c, "Invalid date format", fiber.StatusBadRequest, errors)
+		}
+		patient.DateOfBirth = parsedDOB
+	}
+
+	// Assign values
 	patient.ID = uuid.New()
 	patient.PhoneNumber = phone_number
-	patient.PatientNumber,err = generatePatientNumber(db) // Function to auto-generate unique patient numbers
-	if err != nil{
+	patient.PatientNumber, err = generatePatientNumber(db)
+	if err != nil {
 		errors["patient_number"] = append(errors["patient_number"], err.Error())
 	}
 
+	// Save to DB
 	if err := db.Create(&patient).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create patient"})
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(patient)
 }
+
 
 func generatePatientNumber(db *gorm.DB) (string, error) {
 	var lastPatient Patient
@@ -64,69 +84,70 @@ func generatePatientNumber(db *gorm.DB) (string, error) {
 
 
 //update patients details
-func UpdatePatient(c *fiber.Ctx) error {
+func UpdatePatient(c *fiber.Ctx) (*Patient,error) {
 	patientID := c.Params("id")
 
 	// Find the existing patient by ID
 	var patient Patient
 	if err := db.First(&patient, "id = ?", patientID).Error; err != nil {
-		return utilities.ShowError(c, "Patient not found", fiber.StatusNotFound, nil)
+		return nil,errors.New("patient not found")
 	}
 
 	// Parse request body
 	updateData := new(Patient)
 	if err := c.BodyParser(updateData); err != nil {
-		return utilities.ShowError(c, "Invalid request format", fiber.StatusBadRequest, nil)
+		return nil,errors.New("failed to parse json data")
 	}
 
 	// Initialize error map
-	errors := make(map[string][]string)
+	error := make(map[string][]string)
 
 	// Validate Phone Number
 	if updateData.PhoneNumber != "" {
 		phone_number, err := utilities.ValidatePhoneNumber(updateData.PhoneNumber, "KE")
 		if err != nil {
-			errors["phone_number"] = append(errors["phone_number"], err.Error())
+			error["phone_number"] = append(error["phone_number"], err.Error())
 		} else {
 			patient.PhoneNumber = phone_number // Update phone number
 		}
 	}
 
 	// Validate Full Name (Ensure it's not empty)
-	if updateData.FullName == "" {
-		errors["full_name"] = append(errors["full_name"], "Full name is required")
+	if updateData.FirstName == "" || updateData.LastName == "" {
+		error["full_name"] = append(error["full_name"], "Full name is required")
 	} else {
-		patient.FullName = updateData.FullName
+		patient.FirstName = updateData.FirstName
+		patient.LastName = updateData.LastName
 	}
 
 	// Validate Date of Birth (Should be a valid date and in the past)
 	if !updateData.DateOfBirth.IsZero() {
 		if updateData.DateOfBirth.After(time.Now()) {
-			errors["date_of_birth"] = append(errors["date_of_birth"], "Date of birth must be in the past")
+			error["date_of_birth"] = append(error["date_of_birth"], "Date of birth must be in the past")
 		} else {
 			patient.DateOfBirth = updateData.DateOfBirth
 		}
 	}
 
 	// Validate Medical Notes (Optional but should not exceed 500 characters)
-	if len(updateData.MedicalNotes) > 500 {
-		errors["medical_notes"] = append(errors["medical_notes"], "Medical notes should not exceed 500 characters")
+	if len(updateData.MedicalHistory) > 500 {
+		error["medical_notes"] = append(error["medical_notes"], "Medical notes should not exceed 500 characters")
 	} else {
-		patient.MedicalNotes = updateData.MedicalNotes
+		patient.MedicalHistory = updateData.MedicalHistory
 	}
 
 	// If there are validation errors, return them
-	if len(errors) > 0 {
-		return utilities.ShowError(c, "Validation failed", fiber.StatusBadRequest, errors)
+	if len(error) > 0 {
+		return nil,errors.New("validation failed")
 	}
 
 	// Update the patient's record
 	if err := db.Save(&patient).Error; err != nil {
-		return utilities.ShowError(c, "Failed to update patient", fiber.StatusInternalServerError, nil)
+		return nil, errors.New("failed to update patient")
 	}
 
 	// Return updated patient details
-	return utilities.ShowSuccess(c,"patient updated successfully",1,patient)
+	return &patient,nil
 }
 
 

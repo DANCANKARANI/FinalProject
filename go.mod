@@ -35,5 +35,6 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/joho/godotenv v1.5.1
 	github.com/ttacon/libphonenumber v1.2.1
+	golang.org/x/crypto v0.14.0
 	golang.org/x/text v0.14.0 // indirect
 )

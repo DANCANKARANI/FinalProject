@@ -2,15 +2,16 @@ package doctor
 
 import (
 	"github.com/dancankarani/medicare/api/controller"
-	"github.com/dancankarani/medicare/api/model"
+	"github.com/dancankarani/medicare/api/controller/user"
 	"github.com/gofiber/fiber/v2"
 )
 
 func SetDoctorsRoutes(app *fiber.App) {
 	auth := app.Group("/api/v1/admin/doctor")
-	auth.Post("/",controller.CreateDoctorHandler)
-	auth.Put("/:id",controller.EditDoctorHandler)
-	auth.Get("/",controller.GetDoctorsHandler)
-	auth.Get("/users",controller.GetAllUsersHandler)
-	auth.Delete("/:id",model.DeleteUser)
+	auth.Post("/login",user.Login)
+	auth.Post("/",controller.CreateUserHandler)
+	doctorGroup := auth.Group("/",user.JWTMiddleware)
+	doctorGroup.Put("/:id",controller.EditDoctorHandler)
+	doctorGroup.Get("/users",controller.GetAllUsersHandler)
+	doctorGroup.Delete("/:id",controller.DeleteUserHandler)
 }

@@ -4,7 +4,10 @@ import (
 	"github.com/dancankarani/medicare/api/routes/admin/doctor"
 	"github.com/dancankarani/medicare/api/routes/admin/pharmacist"
 	"github.com/dancankarani/medicare/api/routes/inventory"
+	"github.com/dancankarani/medicare/api/routes/medicine"
 	"github.com/dancankarani/medicare/api/routes/patient"
+	"github.com/dancankarani/medicare/api/routes/prescription"
+	"github.com/dancankarani/medicare/api/routes/reception"
 	"github.com/dancankarani/medicare/api/routes/role"
 	"github.com/dancankarani/medicare/api/routes/user"
 	"github.com/gofiber/fiber/v2"
@@ -24,6 +27,9 @@ func RegisterEndpoints() {
     patient.SetPatientRoutes(app)
     pharmacist.SetPharmacistRoutes(app)
 	inventory.SetInventoryRoutes(app)
+	medicine.SetMedicineRoutes(app)
+	prescription.SetPrescriptionRoutes(app)
+	reception.SetReceptionRoutes(app)
     //
     app.Listen(":8000")
 }

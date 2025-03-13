@@ -9,7 +9,7 @@ import (
 func SetPatientRoutes(app *fiber.App) {
 	auth := app.Group("/api/v1/patient")
 	auth.Post("/",controller.CreatePatientHandler)
-	auth.Put("/:id",model.UpdatePatient)
+	auth.Put("/:id",controller.UpdatePatientHandler)
 	auth.Delete("/:id",model.DeletePatient)
 	auth.Get("/",model.GetPatients)
 }

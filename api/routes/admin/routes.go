@@ -1,4 +1,4 @@
-package pharmacist
+package admin
 
 import (
 	"github.com/dancankarani/medicare/api/controller"
@@ -6,10 +6,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetPharmacistRoutes(app *fiber.App) {
-	auth := app.Group("/api/v1/admin/pharmacist")
+func SetDoctorsRoutes(app *fiber.App) {
+	auth := app.Group("/api/v1/admin/")
 	auth.Post("/login",user.Login)
+	userGroup := auth.Group("/",user.JWTMiddleware)
 	auth.Post("/",controller.CreateUserHandler)
-	auth.Put("/:id",controller.EditPharmacistHandler)
-	auth.Delete("/:id",controller.DeleteUserHandler)
+	userGroup.Get("/",controller.GetUsersByRoleHandler)
 }

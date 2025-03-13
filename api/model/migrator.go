@@ -5,9 +5,10 @@ import "fmt"
 func DbMigrator() {
 	fmt.Println("initializing db migrator")
 	db.AutoMigrate(
-		&Doctor{},
+		&User{},
 		&Patient{},
-		&Pharmacist{},
 		&Inventory{},
+		&Medicine{},
+		Prescription{},
 	)
 }

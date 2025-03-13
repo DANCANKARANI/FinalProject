@@ -47,7 +47,7 @@ func EditDoctorHandler(c *fiber.Ctx) error {
         Password: req.Password,
     }
 
-    updated_doctor,err := model.EditUser(c, userID, updatedUser, false, true, req.Specialty);
+    updated_doctor,err := model.EditUser(c, userID, updatedUser);
 	if err != nil {
         return utilities.ShowError(c, err.Error(), 0, nil)
     }
@@ -56,13 +56,6 @@ func EditDoctorHandler(c *fiber.Ctx) error {
 }
 
 /*Gets all the doctors*/
-func GetDoctorsHandler(c *fiber.Ctx) error {
-    users, err := model.GetDoctors(c)
-    if err != nil {
-        return utilities.ShowError(c, err.Error(), 0, nil)
-    }
-    return utilities.ShowSuccess(c, "Doctors fetched successfully", 1, users)
-}
 
 /*get all users*/
 func GetAllUsersHandler(c *fiber.Ctx) error {
