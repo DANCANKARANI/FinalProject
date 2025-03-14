@@ -14,4 +14,7 @@ func SetDoctorsRoutes(app *fiber.App) {
 	doctorGroup.Put("/:id",controller.EditDoctorHandler)
 	doctorGroup.Get("/users",controller.GetAllUsersHandler)
 	doctorGroup.Delete("/:id",controller.DeleteUserHandler)
+
+	//getting the lab test
+	
 }

@@ -48,7 +48,7 @@ type Patient struct {
 	DateOfBirth      time.Time      `json:"dob"`
 	PatientNumber  string         `json:"patient_number" gorm:"type:varchar(20);unique"`
 	PhoneNumber      string         `json:"phone_number" gorm:"type:varchar(15)"`
-	Email            string         `json:"email" gorm:"type:varchar(100);unique"`
+	Email            string         `json:"email" gorm:"type:varchar(100)"`
 	Address          string         `json:"address" gorm:"type:varchar(255)"`
 	EmergencyContact string         `json:"emergency_contact" gorm:"type:varchar(15)"`
 	BloodGroup       string         `json:"blood_group" gorm:"type:varchar(10)"`

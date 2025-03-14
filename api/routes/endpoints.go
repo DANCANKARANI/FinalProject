@@ -4,6 +4,7 @@ import (
 	"github.com/dancankarani/medicare/api/routes/admin/doctor"
 	"github.com/dancankarani/medicare/api/routes/admin/pharmacist"
 	"github.com/dancankarani/medicare/api/routes/inventory"
+	labtechnician "github.com/dancankarani/medicare/api/routes/lab_technician"
 	"github.com/dancankarani/medicare/api/routes/medicine"
 	"github.com/dancankarani/medicare/api/routes/patient"
 	"github.com/dancankarani/medicare/api/routes/prescription"
@@ -30,6 +31,7 @@ func RegisterEndpoints() {
 	medicine.SetMedicineRoutes(app)
 	prescription.SetPrescriptionRoutes(app)
 	reception.SetReceptionRoutes(app)
+	labtechnician.SetLabTechnicianRoutes(app)
     //
     app.Listen(":8000")
 }
