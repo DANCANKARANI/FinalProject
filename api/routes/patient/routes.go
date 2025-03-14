@@ -12,4 +12,7 @@ func SetPatientRoutes(app *fiber.App) {
 	auth.Put("/:id",controller.UpdatePatientHandler)
 	auth.Delete("/:id",model.DeletePatient)
 	auth.Get("/",model.GetPatients)
+
+	//refer patient
+	auth.Post("/:id",controller.ReferPatientHandler)
 }

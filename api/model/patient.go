@@ -16,63 +16,69 @@ import (
 func CreatePatient(c *fiber.Ctx) error {
 	var patient Patient
 
+	// Parse the request body into a map to handle custom fields
+	var requestBody map[string]interface{}
+	if err := c.BodyParser(&requestBody); err != nil {
+		log.Println("error registering patient:", err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+	}
+
+	// Manually parse `dob` based on its format
+	if dobStr, ok := requestBody["dob"].(string); ok {
+		var parsedDOB time.Time
+		var err error
+
+		// Try parsing as "YYYY-MM-DD"
+		parsedDOB, err = time.Parse("2006-01-02", dobStr)
+		if err != nil {
+			// If that fails, try parsing as "YYYY-MM-DDTHH:MM:SSZ" (ISO 8601)
+			parsedDOB, err = time.Parse(time.RFC3339, dobStr)
+			if err != nil {
+				log.Println("Error parsing date:", err)
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error":   "Invalid date format",
+					"message": "Expected date in YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ format",
+				})
+			}
+		}
+		patient.DateOfBirth = parsedDOB
+	} else {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "Missing or invalid date of birth",
+			"message": "Date of birth (dob) is required",
+		})
+	}
+
+	// Parse the rest of the fields into the Patient struct
 	if err := c.BodyParser(&patient); err != nil {
 		log.Println("error registering patient:", err.Error())
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
 	}
 
-	errors := make(map[string][]string)
-
 	// Validate phone number
 	phone_number, err := utilities.ValidatePhoneNumber(patient.PhoneNumber, "KE")
 	if err != nil {
 		log.Println(err.Error())
-		errors["phone_number"] = append(errors["phone_number"], err.Error())
-		return utilities.ShowError(c, "Invalid phone number :"+phone_number, fiber.StatusBadRequest, errors)
+		return utilities.ShowError(c, "Invalid phone number: "+phone_number, fiber.StatusBadRequest, nil)
 	}
-
-	// Manually parse `dob` from "YYYY-MM-DD"
-	if dobStr := c.FormValue("dob"); dobStr != "" {
-		parsedDOB, err := time.Parse("2006-01-02", dobStr) // Expecting "YYYY-MM-DD"
-		if err != nil {
-			log.Println("Error parsing date:", err)
-			errors["dob"] = append(errors["dob"], "Invalid date format. Expected YYYY-MM-DD")
-			return utilities.ShowError(c, "Invalid date format", fiber.StatusBadRequest, errors)
-		}
-		patient.DateOfBirth = parsedDOB
-	}
-
-	// Assign values
-	patient.ID = uuid.New()
 	patient.PhoneNumber = phone_number
+
+	// Generate patient number
 	patient.PatientNumber, err = generatePatientNumber(db)
 	if err != nil {
-		errors["patient_number"] = append(errors["patient_number"], err.Error())
-	}
-
-	// Handle emergency cases
-	if patient.IsEmergency {
-		// Validate emergency-specific fields
-		if patient.TriageLevel == "" {
-			errors["triage_level"] = append(errors["triage_level"], "Triage level is required for emergency cases")
-		}
-		if patient.InitialVitals == "" {
-			errors["initial_vitals"] = append(errors["initial_vitals"], "Initial vitals are required for emergency cases")
-		}
-
-		// If there are errors, return them
-		if len(errors) > 0 {
-			return utilities.ShowError(c, "Validation errors for emergency case", fiber.StatusBadRequest, errors)
-		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate patient number"})
 	}
 
 	// Save to DB
+	patient.ID = uuid.New()
 	if err := db.Create(&patient).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create patient"})
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(patient)
 }
+
+//generate patient number
 
 func generatePatientNumber(db *gorm.DB) (string, error) {
 	var lastPatient Patient
@@ -95,7 +101,6 @@ func generatePatientNumber(db *gorm.DB) (string, error) {
 
 	return newPatientNumber, nil
 }
-
 
 
 //update patients details

@@ -85,17 +85,18 @@ type LabTest struct {
 
 
 
+
 // Referral represents a patient referral record
 type Referral struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	PatientID  uuid.UUID      `gorm:"type:uuid;not null;index" json:"patient_id"`
-	DoctorID   uuid.UUID      `gorm:"type:uuid;not null;index" json:"doctor_id"`
-	ReferredTo string         `gorm:"type:varchar(255);not null" json:"referred_to"`
-	Reason     string         `gorm:"type:text;not null" json:"reason"`
-	Diagnosis  string         `gorm:"type:text" json:"diagnosis"`
-	LabResults string         `gorm:"type:jsonb" json:"lab_results"` // Store structured lab results in JSON format
-	Status     string         `gorm:"type:enum('Pending', 'Accepted', 'Completed');default:'Pending'" json:"status"`
-	CreatedAt  time.Time      `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt  time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
-	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+	ID          uuid.UUID      `json:"id" gorm:"type:varchar(36);primaryKey;"`
+	PatientID   uuid.UUID      `json:"patient_id" gorm:"type:varchar(36);"`
+	DoctorID    uuid.UUID      `json:"doctor_id" gorm:"type:varchar(36);"`
+	ReferredTo  string         `json:"referred_to" gorm:"type:varchar(255)"`
+	Reason      string         `json:"reason" gorm:"type:text;"`
+	Diagnosis   string         `json:"diagnosis" gorm:"type:text"`
+	LabResults  string         `json:"lab_results" gorm:"type:json"` // Store structured lab results in JSON format
+	Status      string         `json:"status" gorm:"type:varchar(20);default:'Pending';check:status IN ('Pending', 'Accepted', 'Completed')"`
+	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt   gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
 }
