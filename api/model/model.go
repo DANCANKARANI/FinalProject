@@ -24,15 +24,17 @@ type Medicine struct {
 
 // Prescription struct represents a prescription record.
 type Prescription struct {
-	ID                 uuid.UUID  `json:"id" gorm:"type:varchar(36);primaryKey"`
-	PatientName        string     `json:"patient_name" gorm:"type:varchar(100);not null"`
-	Age                int        `json:"age"`
-	Diagnosis          string     `json:"diagnosis" gorm:"type:text"`
-	PrescribedMedicines []Medicine `json:"prescribed_medicines" gorm:"many2many:prescription_medicines"`
-	Status            string     `json:"status" gorm:"type:varchar(20);default:'Pending'"`
-	CreatedAt         time.Time  `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt         time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
+	ID                 uuid.UUID      `json:"id" gorm:"type:varchar(36);primaryKey"`
+	PatientID          uuid.UUID      `json:"patient_id" gorm:"type:varchar(36);not null"` // Foreign key to Patient
+	Patient            Patient        `json:"patient" gorm:"foreignKey:PatientID"`         // Relationship to Patient
+	Diagnosis          string         `json:"diagnosis" gorm:"type:text"`
+	PrescribedMedicines []Medicine     `json:"prescribed_medicines" gorm:"many2many:prescription_medicines"`
+	Status             string         `json:"status" gorm:"type:varchar(20);default:'Pending'"`
+	CreatedAt          time.Time      `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt          time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 }
+
+//reception struct represents a reception record
 type Receptionist struct {
 	gorm.Model
 	FullName string `gorm:"not null"`
@@ -42,21 +44,30 @@ type Receptionist struct {
 }
 type Patient struct {
 	ID               uuid.UUID      `json:"id" gorm:"type:varchar(36);primaryKey"`
-	FirstName        string         `json:"first_name" gorm:"type:varchar(50)"`
-	LastName         string         `json:"last_name" gorm:"type:varchar(50)"`
-	Gender           string         `json:"gender" gorm:"type:varchar(10)"`
-	DateOfBirth      time.Time      `json:"dob"`
-	PatientNumber  string         `json:"patient_number" gorm:"type:varchar(20);unique"`
-	PhoneNumber      string         `json:"phone_number" gorm:"type:varchar(15)"`
+	FirstName        string         `json:"first_name" gorm:"type:varchar(50);not null"`
+	LastName         string         `json:"last_name" gorm:"type:varchar(50);not null"`
+	Gender           string         `json:"gender" gorm:"type:varchar(10);not null"`
+	DateOfBirth      time.Time      `json:"dob" gorm:"not null"`
+	PatientNumber    string         `json:"patient_number" gorm:"type:varchar(20);unique;not null"`
+	PhoneNumber      string         `json:"phone_number" gorm:"type:varchar(15);not null"`
 	Email            string         `json:"email" gorm:"type:varchar(100)"`
 	Address          string         `json:"address" gorm:"type:varchar(255)"`
-	EmergencyContact string         `json:"emergency_contact" gorm:"type:varchar(15)"`
 	BloodGroup       string         `json:"blood_group" gorm:"type:varchar(10)"`
 	MedicalHistory   string         `json:"medical_history" gorm:"type:text"`
+
+	// Emergency-specific fields
+	IsEmergency      bool           `json:"is_emergency" gorm:"default:false"` // Flag for emergency cases
+	EmergencyContact string         `json:"emergency_contact" gorm:"type:varchar(15)"` // Contact person for emergencies
+	TriageLevel      string         `json:"triage_level" gorm:"type:varchar(20)"` // Red, Yellow, Green
+	InitialVitals    string         `json:"initial_vitals" gorm:"type:text"` // JSON or stringified vitals
+	EmergencyNotes   string         `json:"emergency_notes" gorm:"type:text"` // Additional notes for emergency cases
+
+	// Timestamps
 	CreatedAt        time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt        time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt        gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+	DeletedAt        gorm.DeletedAt `json:"deleted_at" gorm:"index"` // Soft delete
 }
+
 type LabTest struct {
 	ID          uuid.UUID      `json:"id" gorm:"type:varchar(36);primaryKey"`
 	TestName    string         `json:"test_name" gorm:"type:varchar(100);not null"`
@@ -70,4 +81,21 @@ type LabTest struct {
 	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+}
+
+
+
+// Referral represents a patient referral record
+type Referral struct {
+	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	PatientID  uuid.UUID      `gorm:"type:uuid;not null;index" json:"patient_id"`
+	DoctorID   uuid.UUID      `gorm:"type:uuid;not null;index" json:"doctor_id"`
+	ReferredTo string         `gorm:"type:varchar(255);not null" json:"referred_to"`
+	Reason     string         `gorm:"type:text;not null" json:"reason"`
+	Diagnosis  string         `gorm:"type:text" json:"diagnosis"`
+	LabResults string         `gorm:"type:jsonb" json:"lab_results"` // Store structured lab results in JSON format
+	Status     string         `gorm:"type:enum('Pending', 'Accepted', 'Completed');default:'Pending'" json:"status"`
+	CreatedAt  time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt  time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }

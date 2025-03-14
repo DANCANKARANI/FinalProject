@@ -1,49 +1,63 @@
 package model
 
 import (
+	"fmt"
+	"log"
 	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 // CreatePrescription handles creating a new prescription
-func CreatePrescription(c *fiber.Ctx)(*Prescription,error){
+func CreatePrescription(c *fiber.Ctx) (*Prescription, error) {
+	// Define the request structure
 	type PrescriptionRequest struct {
-		PatientName         string   `json:"patient_name"`
-		Age                 int      `json:"age"`
-		Diagnosis           string   `json:"diagnosis"`
-		PrescribedMedicineIDs []uint `json:"prescribed_medicine_ids"`
-		Status              string   `json:"status"`
+		PatientID            uuid.UUID `json:"patient_id"`
+		Diagnosis            string    `json:"diagnosis"`
+		PrescribedMedicineIDs []uint   `json:"prescribed_medicine_ids"`
+		Status               string    `json:"status"`
 	}
 
+	// Parse the request body
 	var req PrescriptionRequest
 	if err := c.BodyParser(&req); err != nil {
-		return nil,c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request data"})
+		log.Println(err.Error())
+		return nil, fmt.Errorf("invalid request data")
 	}
 
-	if req.PatientName == "" || req.Diagnosis == "" || len(req.PrescribedMedicineIDs) == 0 {
-		return nil,c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Patient name, diagnosis, and medicines are required"})
+	// Validate required fields
+	if req.PatientID == uuid.Nil {
+		return nil, fmt.Errorf("patient_id is required")
 	}
-
+	if req.Diagnosis == "" {
+		return nil, fmt.Errorf("diagnosis is required")
+	}
+	if len(req.PrescribedMedicineIDs) == 0 {
+		return nil, fmt.Errorf("at least one prescribed_medicine_id is required")
+	}
+	// Fetch the medicines from the database
 	var medicines []Medicine
 	if err := db.Where("id IN ?", req.PrescribedMedicineIDs).Find(&medicines).Error; err != nil {
-		return nil,c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching medicines"})
+		return nil, fmt.Errorf("error fetching medicines")
 	}
 
+	// Check if all medicines were found
 	if len(medicines) != len(req.PrescribedMedicineIDs) {
-		return nil,c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Some medicines not found"})
+		return nil, fmt.Errorf("some medicines not found")
 	}
 
+	// Check if all medicines are in stock
 	for _, medicine := range medicines {
 		if !medicine.InStock {
-			return nil,c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Some medicines are out of stock"})
+			return nil, fmt.Errorf("medicine %s is out of stock", medicine.Name)
 		}
 	}
 
+	// Create the prescription
 	prescription := Prescription{
 		ID:                 uuid.New(),
-		PatientName:        req.PatientName,
-		Age:                req.Age,
+		PatientID:          req.PatientID,
 		Diagnosis:          req.Diagnosis,
 		PrescribedMedicines: medicines,
 		Status:             req.Status,
@@ -51,12 +65,14 @@ func CreatePrescription(c *fiber.Ctx)(*Prescription,error){
 		UpdatedAt:          time.Now(),
 	}
 
+	// Save the prescription to the database
 	if err := db.Create(&prescription).Error; err != nil {
-		return nil,c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not save prescription"})
+		return nil, fmt.Errorf("could not save prescription")
 	}
-	return &prescription,nil
-}
 
+	// Return the created prescription and nil error
+	return &prescription, nil
+}
 
 // GetPrescriptions retrieves all prescriptions
 func GetPrescriptions(c *fiber.Ctx)(*[]Prescription,error) {
@@ -97,12 +113,7 @@ func UpdatePrescription(c *fiber.Ctx, id string) (*Prescription, error) {
 	}
 
 	// Update fields only if they are provided in the request body
-	if updateData.PatientName != "" {
-		prescription.PatientName = updateData.PatientName
-	}
-	if updateData.Age != 0 {
-		prescription.Age = updateData.Age
-	}
+
 	if updateData.Diagnosis != "" {
 		prescription.Diagnosis = updateData.Diagnosis
 	}

@@ -50,6 +50,22 @@ func CreatePatient(c *fiber.Ctx) error {
 		errors["patient_number"] = append(errors["patient_number"], err.Error())
 	}
 
+	// Handle emergency cases
+	if patient.IsEmergency {
+		// Validate emergency-specific fields
+		if patient.TriageLevel == "" {
+			errors["triage_level"] = append(errors["triage_level"], "Triage level is required for emergency cases")
+		}
+		if patient.InitialVitals == "" {
+			errors["initial_vitals"] = append(errors["initial_vitals"], "Initial vitals are required for emergency cases")
+		}
+
+		// If there are errors, return them
+		if len(errors) > 0 {
+			return utilities.ShowError(c, "Validation errors for emergency case", fiber.StatusBadRequest, errors)
+		}
+	}
+
 	// Save to DB
 	if err := db.Create(&patient).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create patient"})
@@ -57,7 +73,6 @@ func CreatePatient(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusCreated).JSON(patient)
 }
-
 
 func generatePatientNumber(db *gorm.DB) (string, error) {
 	var lastPatient Patient

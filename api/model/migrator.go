@@ -10,6 +10,6 @@ func DbMigrator() {
 		&Patient{},
 		&Inventory{},
 		&Medicine{},
-		Prescription{},
+		&Prescription{},
 	)
 }
