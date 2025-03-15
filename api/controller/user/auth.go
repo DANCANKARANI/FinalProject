@@ -42,7 +42,7 @@ func Login(c *fiber.Ctx)error{
 	}
 	exp :=time.Hour*24
 	//generating token
-	tokenString,err := middleware.GenerateToken(middleware.Claims{UserID: &existingUser.ID,Role:existingUser.Role},exp)
+	tokenString,err := middleware.GenerateToken(middleware.Claims{UserID: &existingUser.ID,Role:existingUser.Role,FullName: existingUser.FullName},exp)
 	if err != nil{
 		return utilities.ShowError(c,err.Error(),1,map[string][]string{"errors":{err.Error()}})
 	}

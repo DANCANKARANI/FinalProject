@@ -8,8 +8,8 @@ func DbMigrator() {
 		&User{},
 		&LabTest{},
 		&Patient{},
-		&Inventory{},
 		&Medicine{},
+		&Inventory{},
 		&Referral{},
 		&Prescription{},
 	)

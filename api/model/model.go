@@ -7,31 +7,42 @@ import (
 	"gorm.io/gorm"
 )
 
-// Medicine struct represents a medicine with stock information.
 type Medicine struct {
-	ID                  uint          `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name                string        `json:"name" gorm:"type:varchar(100);not null"`
-	Dosage              string        `json:"dosage" gorm:"type:varchar(50)"`
-	Frequency           string        `json:"frequency" gorm:"type:varchar(50)"`
-	Duration            string        `json:"duration" gorm:"type:varchar(50)"`
-	Route               string        `json:"route" gorm:"type:varchar(50)"`
-	SpecialInstructions string        `json:"special_instructions" gorm:"type:text"`
-	InStock             bool          `json:"in_stock" gorm:"default:true"`
-	Prescriptions       []*Prescription `json:"-" gorm:"many2many:prescription_medicines"`
-	CreatedAt           time.Time     `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt           time.Time     `json:"updated_at" gorm:"autoUpdateTime"`
+    ID                  uint          `json:"id" gorm:"primaryKey;autoIncrement"`
+    Name                string        `json:"name" gorm:"type:varchar(100);not null"`
+	Form                string         `json:"form" gorm:"type:varchar(50)"` // e.g., tablet, liquid, injection
+    InStock             bool          `json:"in_stock" gorm:"default:true"`
+    Inventories         []Inventory   `json:"inventories" gorm:"foreignKey:MedicineID"` // One-to-many relationship
+    Prescriptions       []*Prescription `json:"-" gorm:"many2many:prescription_medicines"`
+    CreatedAt           time.Time     `json:"created_at" gorm:"autoCreateTime"`
+    UpdatedAt           time.Time     `json:"updated_at" gorm:"autoUpdateTime"`
+}
+
+type Inventory struct {
+    ID           uuid.UUID      `json:"id" gorm:"type:varchar(36);primary_key"`
+    MedicineID   uint           `json:"medicine_id" gorm:"not null"` // Foreign key to Medicine
+    Name         string         `json:"name" gorm:"type:varchar(100);not null"`
+    Quantity     int            `json:"quantity" gorm:"not null"`
+    Category     string         `json:"category" gorm:"type:varchar(50)"`
+    ExpiryDate   time.Time      `json:"expiry_date"`
+    ReorderLevel int            `json:"reorder_level" gorm:"not null"`
+    CreatedAt    time.Time      `json:"created_at" gorm:"autoCreateTime"`
+    UpdatedAt    time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+    DeletedAt    gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }
 
 // Prescription struct represents a prescription record.
 type Prescription struct {
-	ID                 uuid.UUID      `json:"id" gorm:"type:varchar(36);primaryKey"`
-	PatientID          uuid.UUID      `json:"patient_id" gorm:"type:varchar(36);not null"` // Foreign key to Patient
-	Patient            Patient        `json:"patient" gorm:"foreignKey:PatientID"`         // Relationship to Patient
-	Diagnosis          string         `json:"diagnosis" gorm:"type:text"`
-	PrescribedMedicines []Medicine     `json:"prescribed_medicines" gorm:"many2many:prescription_medicines"`
-	Status             string         `json:"status" gorm:"type:varchar(20);default:'Pending'"`
-	CreatedAt          time.Time      `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt          time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+    ID                 uuid.UUID      `json:"id" gorm:"type:varchar(36);primaryKey"`
+    PatientID          uuid.UUID      `json:"patient_id" gorm:"type:varchar(36);not null"` // Foreign key to Patient
+    Patient            Patient        `json:"patient" gorm:"foreignKey:PatientID"`         // Relationship to Patient
+    DoctorID           uuid.UUID      `json:"doctor_id" gorm:"type:varchar(36);not null"`   // Foreign key to Doctor
+    Doctor             User           `json:"doctor" gorm:"foreignKey:DoctorID"`           // Relationship to Doctor
+    Diagnosis          string         `json:"diagnosis" gorm:"type:text"`
+    PrescribedMedicines []Medicine     `json:"prescribed_medicines" gorm:"many2many:prescription_medicines"`
+    Status             string         `json:"status" gorm:"type:varchar(20);default:'Pending'"`
+    CreatedAt          time.Time      `json:"created_at" gorm:"autoCreateTime"`
+    UpdatedAt          time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 }
 
 //reception struct represents a reception record

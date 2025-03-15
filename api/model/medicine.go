@@ -6,28 +6,35 @@ import (
 )
 
 // CreateMedicine adds a new medicine to the database
-func CreateMedicine(c *fiber.Ctx)( *Medicine,error) {
+func CreateMedicine(c *fiber.Ctx) (*Medicine, error) {
+	// Parse the request body into a Medicine struct
 	var req Medicine
-
 	if err := c.BodyParser(&req); err != nil {
-		return nil,c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	// Validate the request
+	if req.Name == "" {
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Medicine name is required")
 	}
 
 	// Check if medicine already exists
 	var existingMedicine Medicine
 	if err := db.Where("name = ?", req.Name).First(&existingMedicine).Error; err == nil {
-		return nil,c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Medicine already exists"})
+		return nil, fiber.NewError(fiber.StatusConflict, "Medicine already exists")
 	}
 
+	// Set timestamps
 	req.CreatedAt = time.Now()
 	req.UpdatedAt = time.Now()
 
 	// Save to database
 	if err := db.Create(&req).Error; err != nil {
-		return nil,c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save medicine"})
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to save medicine")
 	}
 
-	return &req,nil
+	// Return the created medicine
+	return &req, nil
 }
 
 
@@ -75,21 +82,12 @@ func UpdateMedicine(c *fiber.Ctx, id string) (*Medicine, error) {
 	if updateData.Name != "" {
 		medicine.Name = updateData.Name
 	}
-	if updateData.Dosage != "" {
-		medicine.Dosage = updateData.Dosage
+
+	
+	if updateData.Form != "" {
+		medicine.Form = updateData.Form
 	}
-	if updateData.Frequency != "" {
-		medicine.Frequency = updateData.Frequency
-	}
-	if updateData.Duration != "" {
-		medicine.Duration = updateData.Duration
-	}
-	if updateData.Route != "" {
-		medicine.Route = updateData.Route
-	}
-	if updateData.SpecialInstructions != "" {
-		medicine.SpecialInstructions = updateData.SpecialInstructions
-	}
+
 	// Assuming "InStock" is a boolean and you can update it based on provided data
 	medicine.InStock = updateData.InStock
 
