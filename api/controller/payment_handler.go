@@ -205,7 +205,8 @@ func HandleCallback(c *fiber.Ctx) error {
 			"error": "Failed to save payment details",
 		})
 	}
-
+	fmt.Println(paymentStatus)
+	fmt.Println(payment)
 	// Return the payment details
 	return c.JSON(payment)
 }
