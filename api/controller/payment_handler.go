@@ -59,7 +59,7 @@ func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payments, erro
 		"PartyB":           174379,
 		"PhoneNumber":      payment.CustomerPhone,
 		"CallBackURL":      "https://medicare-t9y1.onrender.com/api/v1/callback",
-		"AccountReference": "Furahia Adventures",
+		"AccountReference": payment.AccountReference,
 		"TransactionDesc":  "Bike Ride",
 	}
 
