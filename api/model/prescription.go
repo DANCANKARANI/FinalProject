@@ -9,20 +9,24 @@ import (
 	"github.com/google/uuid"
 )
 
-// CreatePrescription handles creating a new prescription
+// CreatePrescription handles creating a new prescription// CreatePrescription handles creating a new prescription
 func CreatePrescription(c *fiber.Ctx) (*Prescription, error) {
 	// Define the request structure
 	type PrescriptionRequest struct {
-		PatientID            uuid.UUID `json:"patient_id"`
-		Diagnosis            string    `json:"diagnosis"`
-		PrescribedMedicineIDs []uint   `json:"prescribed_medicine_ids"`
-		Status               string    `json:"status"`
+		PatientID             uuid.UUID `json:"patient_id"`
+		DoctorID              uuid.UUID `json:"doctor_id"`
+		Diagnosis             string    `json:"diagnosis"`
+		Dosage				string		`json:"dosage"`
+		Instructions		string		`json:"instructions"`
+		Frequency			uint		`json:"frequency"`
+		PrescribedMedicineIDs []uint    `json:"prescribed_medicine_ids"`
+		Status                string    `json:"status"`
 	}
 
 	// Parse the request body
 	var req PrescriptionRequest
 	if err := c.BodyParser(&req); err != nil {
-		log.Println(err.Error())
+		log.Printf("Error parsing request body: %v", err)
 		return nil, fmt.Errorf("invalid request data")
 	}
 
@@ -30,16 +34,21 @@ func CreatePrescription(c *fiber.Ctx) (*Prescription, error) {
 	if req.PatientID == uuid.Nil {
 		return nil, fmt.Errorf("patient_id is required")
 	}
+	if req.DoctorID == uuid.Nil {
+		return nil, fmt.Errorf("doctor_id is required")
+	}
 	if req.Diagnosis == "" {
 		return nil, fmt.Errorf("diagnosis is required")
 	}
 	if len(req.PrescribedMedicineIDs) == 0 {
 		return nil, fmt.Errorf("at least one prescribed_medicine_id is required")
 	}
+
 	// Fetch the medicines from the database
 	var medicines []Medicine
 	if err := db.Where("id IN ?", req.PrescribedMedicineIDs).Find(&medicines).Error; err != nil {
-		return nil, fmt.Errorf("error fetching medicines")
+		log.Printf("Error fetching medicines: %v", err)
+		return nil, fmt.Errorf("error fetching medicines: %v", err)
 	}
 
 	// Check if all medicines were found
@@ -58,7 +67,11 @@ func CreatePrescription(c *fiber.Ctx) (*Prescription, error) {
 	prescription := Prescription{
 		ID:                 uuid.New(),
 		PatientID:          req.PatientID,
+		DoctorID:           req.DoctorID,
 		Diagnosis:          req.Diagnosis,
+		Dosage: req.Dosage,
+		Instructions: req.Instructions,
+		Frequency: req.Frequency,
 		PrescribedMedicines: medicines,
 		Status:             req.Status,
 		CreatedAt:          time.Now(),
@@ -67,23 +80,45 @@ func CreatePrescription(c *fiber.Ctx) (*Prescription, error) {
 
 	// Save the prescription to the database
 	if err := db.Create(&prescription).Error; err != nil {
-		return nil, fmt.Errorf("could not save prescription")
+		log.Printf("Error saving prescription: %v", err)
+		return nil, fmt.Errorf("could not save prescription: %v", err)
 	}
 
-	// Return the created prescription and nil error
+	// Preload the Doctor and Patient details
+	if err := db.Preload("Doctor").Preload("Patient").First(&prescription, "id = ?", prescription.ID).Error; err != nil {
+		log.Printf("Error preloading Doctor and Patient details: %v", err)
+		return nil, fmt.Errorf("error preloading Doctor and Patient details: %v", err)
+	}
+
+	// Return the created prescription with preloaded Doctor and Patient details
 	return &prescription, nil
 }
 
-// GetPrescriptions retrieves all prescriptions
-func GetPrescriptions(c *fiber.Ctx)(*[]Prescription,error) {
+// GetPrescriptions retrieves all prescriptions with optional filtering
+func GetPrescriptions(c *fiber.Ctx) (*[]Prescription, error) {
 	var prescriptions []Prescription
 
-	if err := db.Preload("PrescribedMedicines").Find(&prescriptions).Error; err != nil {
-		return nil,c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve prescriptions"})
-	}
-	return &prescriptions,nil
-}
+	// Initialize the query with preloading for PrescribedMedicines, Doctor, and Patient
+	query := db.Preload("PrescribedMedicines").Preload("Doctor").Preload("Patient")
 
+	// Apply filters based on query parameters
+	if status := c.Query("status"); status != "" {
+		query = query.Where("status = ?", status)
+	}
+	if patientID := c.Query("patient_id"); patientID != "" {
+		query = query.Where("patient_id = ?", patientID)
+	}
+	if doctorID := c.Query("doctor_id"); doctorID != "" {
+		query = query.Where("doctor_id = ?", doctorID)
+	}
+
+	// Execute the query
+	if err := query.Find(&prescriptions).Error; err != nil {
+		return nil, c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve prescriptions"})
+	}
+
+	return &prescriptions, nil
+}
 
 // GetPrescription retrieves a single prescription by ID
 func GetPrescription(c *fiber.Ctx,id string) (*Prescription,error) {

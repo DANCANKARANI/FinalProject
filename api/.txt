@@ -1,0 +1,32 @@
+DB_USER=root
+MYSQL_ROOT_PASSWORD=root
+DB_PASSWORD=karanidancan120@gmail.com
+MY_SECRET_KEY=MY_SECRET_KEY
+EMAIL=tysonbikes7@gmail.com
+SMTP_PASSWORD=djso lnud emqy rnrr
+COUNTRY_CODE=KE
+DB_NAME=myschema
+DB_HOST=localhost
+DB_PORT=3306
+
+
+SMTP_PASSWORD=npxx oidl rpmf gmbc
+
+
+DB_USER=ur8cwmx83gyy2me6
+MYSQL_ROOT_PASSWORD=root
+DB_PASSWORD=xdqqZ3yZNizJchZITuJ1
+MY_SECRET_KEY=MY_SECRET_KEY
+EMAIL=karanidancan120@gmail.com
+SMTP_PASSWORD=npxx oidl rpmf gmbc
+COUNTRY_CODE=KE
+DB_NAME=bqok4rllxzspcbzlvimi
+DB_HOST=bqok4rllxzspcbzlvimi-mysql.services.clever-cloud.com
+DB_PORT=3306
+
+
+MYSQL_ADDON_HOST=bqok4rllxzspcbzlvimi-mysql.services.clever-cloud.com
+MYSQL_ADDON_DB=bqok4rllxzspcbzlvimi
+MYSQL_ADDON_USER=ur8cwmx83gyy2me6
+MYSQL_ADDON_PORT=3306
+MYSQL_ADDON_PASSWORD=xdqqZ3yZNizJchZITuJ1

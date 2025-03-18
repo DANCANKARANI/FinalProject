@@ -1,6 +1,7 @@
 package user
 
 import (
+	"log"
 	"time"
 
 	"github.com/dancankarani/medicare/api/middleware"
@@ -17,49 +18,58 @@ type loginResponse struct {
 	Token string `json:"token"`
 }
 
-func Login(c *fiber.Ctx)error{
-	user := &model.User{}
-	if err := c.BodyParser(&user); err !=nil {
-		return utilities.ShowError(c,"failed to login",1,map[string][]string{
-			"errors":{err.Error()},
-		})
-	}
+func Login(c *fiber.Ctx) error {
+    user := &model.User{}
+    if err := c.BodyParser(&user); err != nil {
+        return utilities.ShowError(c, "failed to login", 1, map[string][]string{
+            "errors": {err.Error()},
+        })
+    }
 
-	//check of user exist
-	userExist,existingUser,err:= model.UserExist(c,user.Username)
-	if ! userExist && err != nil {
-		return utilities.ShowError(c,"user does not exist",1,map[string][]string{
-			"errors":{err.Error()},
-		})
-	}
-	pass := existingUser.Password
-	//compare password
-	err = utilities.CompareHashAndPassowrd(pass,user.Password)
-	if err !=nil{
-		return utilities.ShowError(c,err.Error(),1,map[string][]string{
-			"errors":{err.Error()},
-		})		 
-	}
-	exp :=time.Hour*24
-	//generating token
-	tokenString,err := middleware.GenerateToken(middleware.Claims{UserID: &existingUser.ID,Role:existingUser.Role,FullName: existingUser.FullName},exp)
-	if err != nil{
-		return utilities.ShowError(c,err.Error(),1,map[string][]string{"errors":{err.Error()}})
-	}
-	//set token cookie 
-	c.Cookie(&fiber.Cookie{
-		Name:     "Authorization",
-		Value:    tokenString,
-		Expires:  time.Now().Add(time.Hour * 24), // Same duration as the token
-		HTTPOnly: true, // Important for security, prevents JavaScript access
-		Secure:   true, // Use secure cookies in production
-		Path:     "/",  // Make the cookie available on all routes
-	})
-	response_user:=loginResponse{
-		Token: tokenString,
-	}
+    // Check if user exists
+    _,existingUser,err := model.UserExist(c,user.Username)
+    if err != nil{
+        log.Println("err:"+err.Error())
+        return utilities.ShowError(c,"login failed",1, map[string][]string{"errors":{err.Error()}})
+    }
 
-	return utilities.ShowSuccess(c,"successfully logged in",fiber.StatusOK,response_user)	
+    // Compare password
+    pass := existingUser.Password
+    err = utilities.CompareHashAndPassowrd(pass, user.Password)
+    if err != nil {
+        return utilities.ShowError(c, err.Error(), 1, map[string][]string{
+            "errors": {err.Error()},
+        })
+    }
+
+    // Generate token
+    exp := time.Hour * 24
+    tokenString, err := middleware.GenerateToken(middleware.Claims{
+        UserID:   &existingUser.ID,
+        Role:     existingUser.Role,
+        FullName: existingUser.FullName,
+    }, exp)
+    if err != nil {
+        return utilities.ShowError(c, err.Error(), 1, map[string][]string{"errors": {err.Error()}})
+    }
+
+    // Set token cookie
+    c.Cookie(&fiber.Cookie{
+        Name:     "Authorization",
+        Value:    tokenString,
+        Expires:  time.Now().Add(time.Hour * 24),
+        HTTPOnly: true, // Prevent client-side JavaScript from accessing the cookie
+        Secure:   false, // Disable Secure for development (enable in production)
+        SameSite: "Lax", // Allow cookies to be sent with top-level navigations
+        Domain:   "localhost", // Match the frontend domain
+        Path:     "/", // Make the cookie accessible across the entire site
+    })
+
+    // Return success response
+    responseUser := loginResponse{
+        Token: tokenString,
+    }
+    return utilities.ShowSuccess(c, "successfully logged in", fiber.StatusOK, responseUser)
 }
 
 //logut user

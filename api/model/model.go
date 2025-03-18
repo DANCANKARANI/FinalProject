@@ -39,6 +39,9 @@ type Prescription struct {
     DoctorID           uuid.UUID      `json:"doctor_id" gorm:"type:varchar(36);not null"`   // Foreign key to Doctor
     Doctor             User           `json:"doctor" gorm:"foreignKey:DoctorID"`           // Relationship to Doctor
     Diagnosis          string         `json:"diagnosis" gorm:"type:text"`
+	Dosage				string		`json:"dosage" gorm:"type:varchar(36)"`
+	Frequency			uint		`json:"frequency" gorm:"type:varchar(36)"`
+	Instructions		string		`json:"instructions" gorm:"type:text"`
     PrescribedMedicines []Medicine     `json:"prescribed_medicines" gorm:"many2many:prescription_medicines"`
     Status             string         `json:"status" gorm:"type:varchar(20);default:'Pending'"`
     CreatedAt          time.Time      `json:"created_at" gorm:"autoCreateTime"`
@@ -110,4 +113,20 @@ type Referral struct {
 	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt   gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+}
+
+
+type Payments struct {
+	ID              uuid.UUID `json:"id" gorm:"type:varchar(36);primaryKey;"` // Unique identifier for the payment
+	Cost            float64   `json:"cost" gorm:"type:decimal(10,2);"`        // Cost of the payment
+	PaymentMethod   string    `json:"payment_method" gorm:"type:varchar(50);"` // Payment method (e.g., M-Pesa, Credit Card)
+	TransactionID   string    `json:"transaction_id" gorm:"type:varchar(100);"` // Transaction ID from the payment gateway
+	PaymentStatus   string    `json:"payment_status" gorm:"type:varchar(50);"` // Payment status (e.g., Pending, Completed, Failed)
+	CallbackURL     string    `json:"callback_url" gorm:"type:varchar(255);"`  // Callback URL for payment notifications
+	CustomerPhone   string    `json:"customer_phone" gorm:"type:varchar(20);"` // Customer's phone number
+	CustomerName    string    `json:"customer_name" gorm:"type:varchar(100);"` // Customer's name
+	AccountReference string   `json:"account_reference" gorm:"type:varchar(100);"` // Account reference (e.g., order ID)
+	TransactionDesc string    `json:"transaction_desc" gorm:"type:varchar(255);"` // Transaction description
+	CreatedAt       time.Time `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;"` // Timestamp when the payment was created
+	UpdatedAt       time.Time `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;"` // Timestamp when the payment was last updated
 }

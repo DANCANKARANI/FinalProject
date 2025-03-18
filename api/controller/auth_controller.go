@@ -7,6 +7,7 @@ import (
 	"github.com/dancankarani/medicare/api/services"
 	"github.com/dancankarani/medicare/utilities"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // CreateDoctorHandler creates a new doctor
@@ -101,7 +102,7 @@ func DeleteUserHandler(c *fiber.Ctx) error {
 
 // GetUserHandler retrieves a user by ID
 func GetUserHandler(c *fiber.Ctx) error {
-	userID := c.Params("id")
+	userID,_ := uuid.Parse(c.Params("id"))
 
 	// Fetch user by ID
 	user, err := model.GetOneUser(c, userID)

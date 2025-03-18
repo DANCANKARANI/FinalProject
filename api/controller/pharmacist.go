@@ -56,3 +56,11 @@ func EditPharmacistHandler(c *fiber.Ctx) error {
     return utilities.ShowSuccess(c, "Pharmacist updated successfully", 1, updated_pharmacist)
 }
 
+func GetPharmacistsHandler(c *fiber.Ctx)error{
+    role := "pharmacist"
+    pharmacists,err := model.GetUsersByRole(c,role)
+    if err != nil{
+        return utilities.ShowError(c,"fai;ed to get pharmacists",1,map[string][]string{"errors":{err.Error()}})
+    } 
+    return utilities.ShowSuccess(c,"pharmacists retrueved successfully",0,pharmacists)
+}

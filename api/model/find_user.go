@@ -17,20 +17,16 @@ func UserExist(c *fiber.Ctx, Username string) (bool, *User, error) {
     var existingUser User
 
     // Detailed logging
-    log.Printf("Checking for user with phone number: %s", Username)
+    log.Printf("Checking for user with username: %s", Username)
 
-    result := db.Where("username = ?", Username).First(&existingUser)
-    if result.Error != nil {
+    err := db.Where("username = ?", Username).First(&existingUser).Error
+    if err != nil {
         // Log the detailed error
-        log.Printf("Error finding user with username %s: %v", Username, result.Error)
+        log.Printf("Error finding user with username %s: %v", Username, err)
+		return false, nil, errors.New("failed to get user with username: " + Username)
 
-        if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-            return false, nil, nil
-        }
-
-        return false, nil, fmt.Errorf("database error: %v", result.Error)
     }
-	log.Printf("User found: %+v", existingUser)
+    log.Printf("User found: %+v", existingUser)
     return true, &existingUser, nil
 }
 /*

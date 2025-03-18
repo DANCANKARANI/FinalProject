@@ -65,3 +65,21 @@ func GetAllUsersHandler(c *fiber.Ctx) error {
     }
     return utilities.ShowSuccess(c, "Users fetched successfully", fiber.StatusOK, users)
 }
+
+func GetUserById(c *fiber.Ctx)error{
+    user_id,_ := model.GetAuthUserID(c)
+    doctor, err := model.GetOneUser(c,user_id)
+    if err != nil{
+        return utilities.ShowError(c,"failed to get user",1,map[string][]string{"errors":{err.Error()}})
+    }
+    return utilities.ShowSuccess(c,"user retrieved successfully",0,doctor)
+}
+
+func GetDoctorsHandler(c *fiber.Ctx)error{
+    role := "doctor"
+    pharmacists,err := model.GetUsersByRole(c,role)
+    if err != nil{
+        return utilities.ShowError(c,"fai;ed to get pharmacists",1,map[string][]string{"errors":{err.Error()}})
+    } 
+    return utilities.ShowSuccess(c,"pharmacists retrueved successfully",0,pharmacists)
+}

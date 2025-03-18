@@ -125,7 +125,6 @@ func GetUsersByRole(c *fiber.Ctx, role string) ([]User, error) {
 		log.Println("failed to fetch users by role:", err.Error())
 		return nil, errors.New("failed to fetch users by role")
 	}
-
 	return users, nil
 }
 
@@ -165,7 +164,7 @@ func DeleteUser(c *fiber.Ctx,userID string) error {
 }
 
 //get one user by id
-func GetOneUser(c *fiber.Ctx, userID string) (*User, error) {
+func GetOneUser(c *fiber.Ctx, userID uuid.UUID) (*User, error) {
 	var user User
 
 	// Fetch user from database
@@ -176,4 +175,6 @@ func GetOneUser(c *fiber.Ctx, userID string) (*User, error) {
 
 	return &user, nil
 }
+
+//get doctor
 

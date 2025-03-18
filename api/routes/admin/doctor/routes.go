@@ -12,7 +12,9 @@ func SetDoctorsRoutes(app *fiber.App) {
 	auth.Post("/",controller.CreateUserHandler)
 	doctorGroup := auth.Group("/",user.JWTMiddleware)
 	doctorGroup.Put("/:id",controller.EditDoctorHandler)
+	doctorGroup.Get("/all",controller.GetDoctorsHandler)
 	doctorGroup.Get("/users",controller.GetAllUsersHandler)
+	doctorGroup.Get("/",controller.GetUserById)
 	doctorGroup.Delete("/:id",controller.DeleteUserHandler)
 
 	//getting the lab test

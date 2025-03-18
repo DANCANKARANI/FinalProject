@@ -26,7 +26,7 @@ func ShowMessage(c *fiber.Ctx, msg interface{}, code int) error {
 
 // ShowError responds with an error message and nested field-specific errors
 func ShowError(c *fiber.Ctx, message string, code int, errors map[string][]string) error {
-    return c.Status(code).JSON(fiber.Map{
+    return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
         "success":      false,
         "response_code": code,
         "message":      message,
