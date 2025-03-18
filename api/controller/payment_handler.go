@@ -13,14 +13,14 @@ import (
 	"github.com/dancankarani/medicare/api/model"
 	"github.com/dancankarani/medicare/utilities"
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
+	
 )
 
 func MakePayments(c *fiber.Ctx)error{
-	err := godotenv.Load(".env")
+	 /*_ := godotenv.Load(".env")
     if err != nil {
-        fmt.Printf("Error loading .env file: %v", err)
-    }
+        log.Fatalf("Error loading .env file: %v", err)
+    }*/
 	// Step 1: Generate Access Token
 	accessToken, err := generateAccessToken()
 	if err != nil {
