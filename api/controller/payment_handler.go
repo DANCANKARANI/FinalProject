@@ -141,7 +141,7 @@ func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payments, erro
 
 
 
-func handleCallback(c *fiber.Ctx) error {
+func HandleCallback(c *fiber.Ctx) error {
 	var callback struct {
 		Body struct {
 			StkCallback struct {
