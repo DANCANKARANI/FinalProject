@@ -17,7 +17,7 @@ import (
 )
 
 func MakePayments(c *fiber.Ctx)error{
-	err := godotenv.Load("././.env")
+	err := godotenv.Load(".env")
     if err != nil {
         fmt.Printf("Error loading .env file: %v", err)
     }
