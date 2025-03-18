@@ -8,6 +8,6 @@ import (
 func SetPaymentsRoutes(app *fiber.App) {
 	auth := app.Group("/api/v1/payments")
 	auth.Post("/", controller.MakePayments)
-	auth.Post("/callback",controller.HandleCallback)
+	
 	//protected routes
 }
