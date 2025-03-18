@@ -124,20 +124,24 @@ func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payments, erro
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+accessToken)
 
-	// Send the STK Push request
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error sending request: %v", err)
 	}
 	defer res.Body.Close()
 
-	// Read the response body
-	body, err := ioutil.ReadAll(res.Body)
+	_, err = ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %v", err)
 	}
 
-	// Simulate the callback handling
+	// Return the payment details
+	return &payment, nil
+}
+
+
+
+func handleCallback(c *fiber.Ctx) error {
 	var callback struct {
 		Body struct {
 			StkCallback struct {
@@ -155,12 +159,14 @@ func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payments, erro
 		} `json:"Body"`
 	}
 
-	// Parse the callback payload (simulated from the STK Push response)
-	if err := json.Unmarshal(body, &callback); err != nil {
-		return nil, fmt.Errorf("error parsing callback payload: %v", err)
+	// Parse the callback payload
+	if err := c.BodyParser(&callback); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request payload",
+		})
 	}
 
-	// Extract relevant fields from the callback
+	// Extract relevant fields
 	var (
 		amount          float64
 		transactionID   string
@@ -187,16 +193,21 @@ func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payments, erro
 		paymentStatus = "Completed"
 	}
 
-	// Update the payment details
-	payment.ID = uuid.New()
-	payment.Cost = amount
-	payment.TransactionID = transactionID
-	payment.PaymentStatus = paymentStatus
-	payment.CustomerPhone = phoneNumber
-	payment.TransactionDate = transactionDate
+	// Create a new Payments struct
+	payment := model.Payments{
+		ID:              uuid.New(),
+		Cost:            amount,
+		PaymentMethod:   "M-Pesa",
+		TransactionID:   transactionID,
+		PaymentStatus:   paymentStatus,
+		CustomerPhone:   phoneNumber,
+		AccountReference: "Order#123", // You can dynamically set this based on your logic
+		TransactionDesc: "Payment for Order #123",
+		TransactionDate: transactionDate,
+	}
 
-	// Return the updated payment details
-	return &payment, nil
+	// Return the payment details
+	return c.JSON(payment)
 }
 
 /*import (
