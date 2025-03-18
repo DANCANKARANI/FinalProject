@@ -126,7 +126,8 @@ type Payments struct {
 	CustomerPhone   string    `json:"customer_phone" gorm:"type:varchar(20);"` // Customer's phone number
 	CustomerName    string    `json:"customer_name" gorm:"type:varchar(100);"` // Customer's name
 	AccountReference string   `json:"account_reference" gorm:"type:varchar(100);"` // Account reference (e.g., order ID)
-	TransactionDesc string    `json:"transaction_desc" gorm:"type:varchar(255);"` // Transaction description
+	TransactionDesc string    `json:"transaction_desc" gorm:"type:varchar(255);"` // Transaction description	
+	TransactionDate string	  `json:"transactiob_date" gorm:"type:varchar(255);"`
 	CreatedAt       time.Time `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;"` // Timestamp when the payment was created
 	UpdatedAt       time.Time `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;"` // Timestamp when the payment was last updated
 }

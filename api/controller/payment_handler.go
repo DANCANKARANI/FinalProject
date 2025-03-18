@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +12,7 @@ import (
 	"github.com/dancankarani/medicare/api/model"
 	"github.com/dancankarani/medicare/utilities"
 	"github.com/gofiber/fiber/v2"
-	
+	"github.com/google/uuid"
 )
 
 func MakePayments(c *fiber.Ctx)error{
@@ -83,18 +82,18 @@ func generateAccessToken() (string, error) {
 	return accessToken, nil
 }
 // Function to make STK Push request
-func makeSTKPushRequest(c *fiber.Ctx,accessToken string) (string, error) {
+func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payments, error) {
 	url := "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
 	method := "POST"
 
 	payment := model.Payments{}
 
-	err := c.BodyParser(&payment)
-	if err != nil{
-		fmt.Println("failed to parse pament json data:",err.Error())
-		return "", errors.New("faied to send an STK Push")
+	// Parse the payment data from the request body
+	if err := c.BodyParser(&payment); err != nil {
+		return nil, fmt.Errorf("failed to parse payment JSON data: %v", err)
 	}
 
+	// Prepare the payload for the STK Push request
 	payloadData := map[string]interface{}{
 		"BusinessShortCode": 174379,
 		"Password":         os.Getenv("Safaricom_Password"),
@@ -104,14 +103,14 @@ func makeSTKPushRequest(c *fiber.Ctx,accessToken string) (string, error) {
 		"PartyA":           25497408042,
 		"PartyB":           174379,
 		"PhoneNumber":      payment.CustomerPhone,
-		"CallBackURL":      "http://192.168.0.101",
+		"CallBackURL":      "https://medicare-t9y1.onrender.com/callback",
 		"AccountReference": "Furahia Adventures",
 		"TransactionDesc":  "Bike Ride",
 	}
 
 	payloadBytes, err := json.Marshal(payloadData)
 	if err != nil {
-		return "", fmt.Errorf("error marshaling JSON: %v", err)
+		return nil, fmt.Errorf("error marshaling JSON: %v", err)
 	}
 
 	payload := bytes.NewReader(payloadBytes)
@@ -119,24 +118,85 @@ func makeSTKPushRequest(c *fiber.Ctx,accessToken string) (string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
 	if err != nil {
-		return "", fmt.Errorf("error creating request: %v", err)
+		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+accessToken)
 
+	// Send the STK Push request
 	res, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("error sending request: %v", err)
+		return nil, fmt.Errorf("error sending request: %v", err)
 	}
 	defer res.Body.Close()
 
+	// Read the response body
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return "", fmt.Errorf("error reading response body: %v", err)
+		return nil, fmt.Errorf("error reading response body: %v", err)
 	}
 
-	return string(body), nil
+	// Simulate the callback handling
+	var callback struct {
+		Body struct {
+			StkCallback struct {
+				MerchantRequestID string `json:"MerchantRequestID"`
+				CheckoutRequestID string `json:"CheckoutRequestID"`
+				ResultCode        int    `json:"ResultCode"`
+				ResultDesc        string `json:"ResultDesc"`
+				CallbackMetadata  struct {
+					Item []struct {
+						Name  string      `json:"Name"`
+						Value interface{} `json:"Value"`
+					} `json:"Item"`
+				} `json:"CallbackMetadata"`
+			} `json:"stkCallback"`
+		} `json:"Body"`
+	}
+
+	// Parse the callback payload (simulated from the STK Push response)
+	if err := json.Unmarshal(body, &callback); err != nil {
+		return nil, fmt.Errorf("error parsing callback payload: %v", err)
+	}
+
+	// Extract relevant fields from the callback
+	var (
+		amount          float64
+		transactionID   string
+		phoneNumber     string
+		transactionDate string
+	)
+
+	for _, item := range callback.Body.StkCallback.CallbackMetadata.Item {
+		switch item.Name {
+		case "Amount":
+			amount = item.Value.(float64)
+		case "MpesaReceiptNumber":
+			transactionID = item.Value.(string)
+		case "PhoneNumber":
+			phoneNumber = fmt.Sprintf("%v", item.Value) // Convert to string
+		case "TransactionDate":
+			transactionDate = fmt.Sprintf("%v", item.Value) // Convert to string
+		}
+	}
+
+	// Determine payment status
+	paymentStatus := "Failed"
+	if callback.Body.StkCallback.ResultCode == 0 {
+		paymentStatus = "Completed"
+	}
+
+	// Update the payment details
+	payment.ID = uuid.New()
+	payment.Cost = amount
+	payment.TransactionID = transactionID
+	payment.PaymentStatus = paymentStatus
+	payment.CustomerPhone = phoneNumber
+	payment.TransactionDate = transactionDate
+
+	// Return the updated payment details
+	return &payment, nil
 }
 
 /*import (
