@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/dancankarani/medicare/utilities"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 func MakePayments(c *fiber.Ctx) error {
@@ -37,11 +39,16 @@ func MakePayments(c *fiber.Ctx) error {
 	return utilities.ShowSuccess(c, "Check your mobile phone for an MPESA STK push", 0, stkPushResponse)
 }
 
-func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payments, error) {
+func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payment, error) {
 	url := "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
 	method := "POST"
 
-	payment := model.Payments{}
+	err := godotenv.Load(".env")
+    if err != nil {
+        log.Fatalf("Error loading .env file: %v", err)
+    }
+	
+	payment := model.Payment{}
 
 	// Parse the payment data from the request body
 	if err := c.BodyParser(&payment); err != nil {
@@ -90,6 +97,8 @@ func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payments, erro
 		return nil, fmt.Errorf("error reading response body: %v", err)
 	}
 
+	patientID := c.Get("X-Patient-ID") // From headers
+	fmt.Println(patientID+" ,")
 	// Return the payment details
 	return &payment, nil
 }
@@ -135,6 +144,31 @@ func generateAccessToken() (string, error) {
 }
 
 func HandleCallback(c *fiber.Ctx) error {
+	// Extract patientID and billingID from the request headers or body
+	patientID := c.Get("X-Patient-ID") // From headers
+	billingID := c.Get("X-Billing-ID") // From headers
+
+	// Alternatively, if the IDs are in the request body:
+	// var requestBody struct {
+	//     PatientID string `json:"patientID"`
+	//     BillingID string `json:"billingID"`
+	// }
+	// if err := c.BodyParser(&requestBody); err != nil {
+	//     return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	//         "error": "Invalid request payload",
+	//     })
+	// }
+	// patientID := requestBody.PatientID
+	// billingID := requestBody.BillingID
+
+	// Validate the IDs
+	if patientID == "" || billingID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Patient ID and Billing ID are required",
+		})
+	}
+
+	// Parse the callback payload
 	var callback struct {
 		Body struct {
 			StkCallback struct {
@@ -152,7 +186,6 @@ func HandleCallback(c *fiber.Ctx) error {
 		} `json:"Body"`
 	}
 
-	// Parse the callback payload
 	if err := c.BodyParser(&callback); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request payload",
@@ -186,27 +219,49 @@ func HandleCallback(c *fiber.Ctx) error {
 		paymentStatus = "Completed"
 	}
 
+	// Convert patientID and billingID to UUID
+	parsedPatientID, err := uuid.Parse(patientID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid patient ID",
+		})
+	}
+
+	
+
 	// Create a new Payments struct
-	payment := model.Payments{
+	payment := model.Payment{
 		ID:              uuid.New(),
+		PatientID:       parsedPatientID, // Include patientID
 		Cost:            amount,
 		PaymentMethod:   "M-Pesa",
 		TransactionID:   transactionID,
 		PaymentStatus:   paymentStatus,
 		CustomerPhone:   phoneNumber,
-		AccountReference: "Order#123", // You can dynamically set this based on your logic
+		AccountReference: "Health Bill", // You can dynamically set this based on your logic
 		TransactionDesc: "Payment for Order #123",
 		TransactionDate: transactionDate,
+	
 	}
-	db :=database.ConnectDB()
+
 	// Save the payment details to the database
+	db := database.ConnectDB()
 	if err := db.Create(&payment).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to save payment details",
 		})
 	}
-	fmt.Println(paymentStatus)
-	fmt.Println(payment)
+
+	// If payment is completed, update the billing record
+	if paymentStatus == "Completed" {
+		// Update the billing record where ID matches billingID
+		if err := db.Model(&model.Billing{}).Where("patient_id = ?", parsedPatientID).Update("paid", true).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to update billing record",
+			})
+		}
+	}
+
 	// Return the payment details
 	return c.JSON(payment)
 }

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/dancankarani/medicare/api/routes/admin"
 	"github.com/dancankarani/medicare/api/routes/admin/doctor"
 	"github.com/dancankarani/medicare/api/routes/admin/pharmacist"
 	"github.com/dancankarani/medicare/api/routes/inventory"
@@ -22,13 +23,14 @@ func RegisterEndpoints() {
 
 	// Configure CORS
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000", // Allow only the frontend origin
+		AllowOrigins:     "http://localhost:3000", // Allow frontend origin
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS", // Allow specific HTTP methods
-		AllowHeaders:     "Origin,Content-Type,Accept,Authorization", // Allow specific headers
+		AllowHeaders:     "Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers", // Allow multiple headers
 		AllowCredentials: true, // Allow credentials (cookies)
 	}))
-
 	
+
+	payments.SetPaymentsRoutes(app)
 	// Register routes
 	socket.SetWebSocketRoutes(app)
 	doctor.SetDoctorsRoutes(app)
@@ -41,7 +43,8 @@ func RegisterEndpoints() {
 	prescription.SetPrescriptionRoutes(app)
 	reception.SetReceptionRoutes(app)
 	labtechnician.SetLabTechnicianRoutes(app)
-	payments.SetPaymentsRoutes(app)
+	admin.SetAdminRoutes(app)
+
 	// Start the server
 	app.Listen(":8000")
 }

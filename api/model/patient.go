@@ -71,10 +71,23 @@ func CreatePatient(c *fiber.Ctx) error {
 
 	// Save to DB
 	patient.ID = uuid.New()
+
 	if err := db.Create(&patient).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create patient"})
 	}
 
+	billing := Billing{
+		ID: uuid.New(),
+		PatientID: patient.ID,
+		Quantity: 1,
+		Price: 20,
+		Paid: false,
+		Description: "Registration",
+	}
+	//create a billing table
+	if err := db.Create(&billing).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create billing table"})
+	}
 	return c.Status(fiber.StatusCreated).JSON(patient)
 }
 
@@ -237,3 +250,13 @@ func GetPatients(c *fiber.Ctx) error {
 		},
 	})
 }
+func GetPatientBills(patientID uuid.UUID) (*[]Billing, error) {
+    var bills []Billing
+    err := db.Where("patient_id = ?", patientID).Find(&bills).Error
+    if err != nil {
+        return nil, err
+    }
+    return &bills, nil
+}
+
+func UpdatePatientBill(id uuid.UUID){}

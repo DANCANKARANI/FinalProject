@@ -79,7 +79,25 @@ func GetDoctorsHandler(c *fiber.Ctx)error{
     role := "doctor"
     pharmacists,err := model.GetUsersByRole(c,role)
     if err != nil{
-        return utilities.ShowError(c,"fai;ed to get pharmacists",1,map[string][]string{"errors":{err.Error()}})
+        return utilities.ShowError(c,"failed to get pharmacists",1,map[string][]string{"errors":{err.Error()}})
     } 
     return utilities.ShowSuccess(c,"pharmacists retrueved successfully",0,pharmacists)
+}
+
+func GetReceptionHandler(c *fiber.Ctx)error{
+    role := "receptionist"
+    pharmacists,err := model.GetUsersByRole(c,role)
+    if err != nil{
+        return utilities.ShowError(c,"failed to get receptionists",1,map[string][]string{"errors":{err.Error()}})
+    } 
+    return utilities.ShowSuccess(c,"receptionists retrieved successfully",0,pharmacists)
+}
+
+func GetTechnicianHandler(c *fiber.Ctx)error{
+    role := "technician"
+    pharmacists,err := model.GetUsersByRole(c,role)
+    if err != nil{
+        return utilities.ShowError(c,"failed to get lab technicians",1,map[string][]string{"errors":{err.Error()}})
+    } 
+    return utilities.ShowSuccess(c,"lab technicians retrieved successfully",0,pharmacists)
 }

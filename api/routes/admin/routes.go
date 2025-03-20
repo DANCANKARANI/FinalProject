@@ -6,10 +6,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetDoctorsRoutes(app *fiber.App) {
+func SetAdminRoutes(app *fiber.App) {
 	auth := app.Group("/api/v1/admin/")
 	auth.Post("/login",user.Login)
 	userGroup := auth.Group("/",user.JWTMiddleware)
 	auth.Post("/",controller.CreateUserHandler)
+	auth.Get("/technician",controller.GetTechnicianHandler)
+	auth.Get("/reception",controller.GetReceptionHandler)
 	userGroup.Get("/",controller.GetUsersByRoleHandler)
 }

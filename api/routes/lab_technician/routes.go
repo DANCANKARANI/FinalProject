@@ -3,6 +3,7 @@ package labtechnician
 import (
 	"github.com/dancankarani/medicare/api/controller"
 	"github.com/dancankarani/medicare/api/controller/user"
+	"github.com/dancankarani/medicare/api/model"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -12,6 +13,7 @@ func SetLabTechnicianRoutes(app *fiber.App){
 
 	technicianGroup := auth.Group("/",user.JWTMiddleware)
 	technicianGroup.Post("/",controller.UploadLabTestHandler)
+	technicianGroup.Post("/results",model.CreateLabTestResult)
 	technicianGroup.Get("/",controller.GetAllLabTestHandler)
 	technicianGroup.Get("/:id",controller.GetLabTestByIdHandler)
 }

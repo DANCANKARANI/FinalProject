@@ -2,7 +2,7 @@ package model
 
 import (
 	"time"
-
+	"gorm.io/datatypes"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -86,18 +86,18 @@ type LabTest struct {
 	ID          uuid.UUID      `json:"id" gorm:"type:varchar(36);primaryKey"`
 	TestName    string         `json:"test_name" gorm:"type:varchar(100);not null"`
 	Description string         `json:"description" gorm:"type:text"`
-	Cost        float64        `json:"cost" gorm:"type:decimal(10,2);not null"`
-	Duration    string         `json:"duration" gorm:"type:varchar(50);not null"`
 	SampleType  string         `json:"sample_type" gorm:"type:varchar(50);not null"`
 	IsActive    bool           `json:"is_active" gorm:"default:true"`
-	PatientID   uuid.UUID      `json:"patient_id" gorm:"type:varchar(36);not null"` // Foreign key to Patient
-	Patient     Patient        `json:"patient" gorm:"foreignKey:PatientID"`         // Relationship to Patient
-	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+	PatientID   uuid.UUID      `json:"patient_id" gorm:"type:varchar(36);not null;index"`
+	Patient     Patient        `json:"patient" gorm:"foreignKey:PatientID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+
+	// Storing results as JSON
+	Results datatypes.JSON `json:"results" gorm:"type:json"` // JSON field for test results
+
+	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }
-
-
 
 
 // Referral represents a patient referral record
@@ -108,7 +108,7 @@ type Referral struct {
 	ReferredTo  string         `json:"referred_to" gorm:"type:varchar(255)"`
 	Reason      string         `json:"reason" gorm:"type:text;"`
 	Diagnosis   string         `json:"diagnosis" gorm:"type:text"`
-	LabResults  string         `json:"lab_results" gorm:"type:json"` // Store structured lab results in JSON format
+	LabResults  string         `json:"lab_results" gorm:"type:text"` // Store structured lab results in JSON format
 	Status      string         `json:"status" gorm:"type:varchar(20);default:'Pending';check:status IN ('Pending', 'Accepted', 'Completed')"`
 	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
@@ -116,8 +116,10 @@ type Referral struct {
 }
 
 
-type Payments struct {
+type Payment struct {
 	ID              uuid.UUID `json:"id" gorm:"type:varchar(36);primaryKey;"` // Unique identifier for the payment
+	BillingID       uuid.UUID `json:"billing_id" gorm:"type:varchar(36)"` // Foreign key to the Billing table
+	PatientID       uuid.UUID `json:"patient_id" gorm:"type:varchar(36)"` // Foreign key to the Patients table
 	Cost            float64   `json:"cost" gorm:"type:decimal(10,2);"`        // Cost of the payment
 	PaymentMethod   string    `json:"payment_method" gorm:"type:varchar(50);"` // Payment method (e.g., M-Pesa, Credit Card)
 	TransactionID   string    `json:"transaction_id" gorm:"type:varchar(100);"` // Transaction ID from the payment gateway
@@ -127,7 +129,28 @@ type Payments struct {
 	CustomerName    string    `json:"customer_name" gorm:"type:varchar(100);"` // Customer's name
 	AccountReference string   `json:"account_reference" gorm:"type:varchar(100);"` // Account reference (e.g., order ID)
 	TransactionDesc string    `json:"transaction_desc" gorm:"type:varchar(255);"` // Transaction description	
-	TransactionDate string	  `json:"transactiob_date" gorm:"type:varchar(255);"`
+	TransactionDate string	  `json:"transaction_date" gorm:"type:varchar(255);"`
 	CreatedAt       time.Time `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;"` // Timestamp when the payment was created
 	UpdatedAt       time.Time `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;"` // Timestamp when the payment was last updated
+	// Relationships
+	Billing Billing `json:"billing" gorm:"foreignKey:BillingID;references:ID"` // Many-to-one relationship with Billing
+	Patient Patient `json:"patient" gorm:"foreignKey:PatientID;references:ID"` // Many-to-one relationship with Patient
+}
+
+
+
+type Billing struct {
+	ID          uuid.UUID `json:"id" gorm:"type:varchar(36);primaryKey;"` // Unique identifier for the billing record
+	PatientID   uuid.UUID `json:"patient_id" gorm:"type:varchar(36)"` // Foreign key to the Patients table
+	Quantity    int       `json:"quantity"`           // Quantity of items or services billed
+	Price       float64   `json:"price" gorm:"type:decimal(10,2);"` // Price per unit of the item or service
+	Description string    `json:"description" gorm:"type:text;"` // Description of the bill (e.g., item/service details)
+	Paid		bool	`json:"paid"`
+	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime;"`     // Timestamp when the billing record was created
+	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime;"`     // Timestamp when the billing record was last updated
+	DeletedAt   gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+
+	// Relationships
+	Patient  Patient   `json:"patient" gorm:"foreignKey:PatientID;references:ID"` // Many-to-one relationship with Patient
+	Payments []Payment `json:"payments" gorm:"foreignKey:BillingID"` // One-to-many relationship with Payments
 }
