@@ -9,8 +9,9 @@ import (
 func SetDoctorsRoutes(app *fiber.App) {
 	auth := app.Group("/api/v1/admin/doctor")
 	auth.Post("/login",user.Login)
-	auth.Post("/",controller.CreateUserHandler)
+	
 	doctorGroup := auth.Group("/",user.JWTMiddleware)
+	doctorGroup.Post("/",controller.CreateUserHandler)
 	doctorGroup.Put("/:id",controller.EditDoctorHandler)
 	doctorGroup.Get("/all",controller.GetDoctorsHandler)
 	doctorGroup.Get("/users",controller.GetAllUsersHandler)
