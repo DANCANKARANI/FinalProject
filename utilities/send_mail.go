@@ -10,7 +10,7 @@ import (
 func SendEmail(to, subject, body string) error {
 
 	from := "karanidancan120@gmail.com"
-	password := "nmae wxfz xcpl cxnbf"
+	password := "uyct osxl wphg ymdg"
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 	if from ==""{
