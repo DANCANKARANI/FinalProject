@@ -213,7 +213,7 @@ func DeletePatient(c *fiber.Ctx) error {
 /*get all Patients*/
 func GetPatients(c *fiber.Ctx) error {
 	// Pagination parameters
-	limit, _ := strconv.Atoi(c.Query("limit", "10"))  // Default limit = 10
+	limit, _ := strconv.Atoi(c.Query("limit", "100"))  // Default limit = 10
 	page, _ := strconv.Atoi(c.Query("page", "1"))    // Default page = 1
 	offset := (page - 1) * limit
 
@@ -259,4 +259,58 @@ func GetPatientBills(patientID uuid.UUID) (*[]Billing, error) {
     return &bills, nil
 }
 
-func UpdatePatientBill(id uuid.UUID){}
+func BookClinic(c *fiber.Ctx) error {
+	// Parse request body
+	var request struct {
+		PatientID string    `json:"patient_id"`
+		Reasons   string    `json:"reasons"`
+		Date      time.Time `json:"date"`
+	}
+
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	// Validate input fields
+	if  request.Reasons == "" || request.Date.IsZero() {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "All fields are required"})
+	}
+
+	// Check if patient exists
+	request.PatientID= c.Params("id")
+	var patient Patient
+	if err := db.First(&patient, "id = ?", request.PatientID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Patient not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Database error"})
+	}
+
+	// Create a new clinic booking
+	booking := ClinicBooking{
+		ID:        uuid.New(),
+		PatientID: request.PatientID,
+		Reasons:   request.Reasons,
+		Date:      request.Date,
+	}
+
+	// Save the booking to the database
+	if err := db.Create(&booking).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create booking"})
+	}
+
+	// Success response
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "Clinic appointment booked successfully",
+		"booking": booking,
+	})
+}
+
+func GetAllBillings() (*[]Billing, error) {
+    var bills []Billing
+    err := db.Find(&bills).Error
+    if err != nil {
+        return nil, err
+    }
+    return &bills, nil
+}

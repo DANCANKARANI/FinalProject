@@ -154,3 +154,15 @@ type Billing struct {
 	Patient  Patient   `json:"patient" gorm:"foreignKey:PatientID;references:ID"` // Many-to-one relationship with Patient
 	Payments []Payment `json:"payments" gorm:"foreignKey:BillingID"` // One-to-many relationship with Payments
 }
+
+type ClinicBooking struct {
+	ID          uuid.UUID `json:"id" gorm:"type:varchar(36);primaryKey;"` // Unique identifier for the billing record
+    PatientID string         `gorm:"type:uuid;not null" json:"patient_id"`
+    Reasons   string         `gorm:"type:text;not null" json:"reasons"`
+    Date      time.Time      `gorm:"not null" json:"date"`
+    CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
+    UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+    DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+    // Relationships
+    Patient Patient `gorm:"foreignKey:PatientID;constraint:OnDelete:CASCADE" json:"patient"`
+}

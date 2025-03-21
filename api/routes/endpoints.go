@@ -23,11 +23,12 @@ func RegisterEndpoints() {
 
 	// Configure CORS
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000", // Allow frontend origin
-		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS", // Allow specific HTTP methods
-		AllowHeaders:     "Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers", // Allow multiple headers
-		AllowCredentials: true, // Allow credentials (cookies)
+		AllowOrigins:     "http://localhost:3000", 
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS", 
+		AllowHeaders:     "Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers, X-Patient-ID", 
+		AllowCredentials: true, 
 	}))
+	
 	
 
 	payments.SetPaymentsRoutes(app)

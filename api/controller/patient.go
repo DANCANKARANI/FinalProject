@@ -34,3 +34,10 @@ func GetPatientBillsHanlder(c *fiber.Ctx)error{
 	}
 	return utilities.ShowSuccess(c,"bills retrieved successfully",0,bill)
 }
+func GetAllBillingsHandler(c *fiber.Ctx) error {
+    bills, err := model.GetAllBillings()
+    if err != nil {
+        return utilities.ShowError(c, "Failed to retrieve all billings", 1, map[string][]string{"errors": {err.Error()}})
+    }
+    return utilities.ShowSuccess(c, "All billings retrieved successfully", 0, bills)
+}

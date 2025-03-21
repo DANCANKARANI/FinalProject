@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+	//"log"
 	"net/http"
 	"os"
 
@@ -15,7 +15,7 @@ import (
 	"github.com/dancankarani/medicare/utilities"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
+	//"github.com/joho/godotenv"
 )
 
 func MakePayments(c *fiber.Ctx) error {
@@ -43,10 +43,10 @@ func makeSTKPushRequest(c *fiber.Ctx, accessToken string) (*model.Payment, error
 	url := "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
 	method := "POST"
 
-	err := godotenv.Load(".env")
+	/*err := godotenv.Load(".env")
     if err != nil {
         log.Fatalf("Error loading .env file: %v", err)
-    }
+    }*/
 	
 	payment := model.Payment{}
 

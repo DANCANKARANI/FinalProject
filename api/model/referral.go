@@ -25,7 +25,13 @@ func ReferPatient(c *fiber.Ctx,patient_id uuid.UUID) (*Referral, error) {
 	}
 
 	// Validate required fields
-	if req.DoctorID == uuid.Nil || req.ReferredTo == "" || req.Reason == "" {
+	id, err:= GetAuthUserID(c)
+	if err != nil{
+		fmt.Println(err.Error())
+	}
+	req.DoctorID=id
+	fmt.Println(req.DoctorID)
+	if  req.ReferredTo == "" || req.Reason == "" {
 		return nil, fmt.Errorf("missing required fields")
 	}
 

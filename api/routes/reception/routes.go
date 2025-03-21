@@ -13,6 +13,8 @@ func SetReceptionRoutes(app *fiber.App) {
 	receptionGroup := auth.Group("/",user.JWTMiddleware)
 	//protected routes
 	receptionGroup.Post("/",model.CreatePatient)
+	receptionGroup.Post("/:id",model.BookClinic)
+	receptionGroup.Get("/",controller.GetAllBillingsHandler)
 	receptionGroup.Get("/:id",controller.GetPatientBillsHanlder)
 	receptionGroup.Patch("/",controller.UpdatePatientHandler)
 }

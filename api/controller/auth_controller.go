@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/dancankarani/medicare/api/model"
@@ -63,9 +64,15 @@ func CreateUserHandler(c *fiber.Ctx) error {
     pass := utilities.PasswordGenerator()
     hashed_passsword, _ := utilities.HashPassword(pass)
 
-    log.Println("username:"+user.Username+" password:",pass)
+	log.Println("username:" + user.Username + " password:" + pass)
 
-	// Generate a random password
+	// Format the login details
+	logins := fmt.Sprintf("Username: %s\nPassword: %s", user.Username, pass)
+	
+	// Send email
+	utilities.SendEmail(user.Email, "Iruma Dispensary Login Details", logins)
+	
+	// Assign the hashed password to the user
 	user.Password = hashed_passsword
 
 	// Return validation errors if any
