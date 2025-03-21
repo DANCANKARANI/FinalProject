@@ -23,10 +23,12 @@ func RegisterEndpoints() {
 
 	// Configure CORS
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000,https://ehospital-ashy.vercel.app", 
-		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS", 
-		AllowHeaders:     "Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers, X-Patient-ID", 
-		AllowCredentials: true, 
+		AllowOriginsFunc: func(origin string) bool {
+			return origin == "http://localhost:3000" || origin == "https://ehospital-ashy.vercel.app"
+		},
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+		AllowHeaders:     "Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers, X-Patient-ID",
+		AllowCredentials: true,
 	}))
 	
 	
