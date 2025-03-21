@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net/mail"
 	"net/smtp"
-	"os"
+
 )
 
 func SendEmail(to, subject, body string) error {
-	
-	from := os.Getenv("EMAIL")
-	password := os.Getenv("SMTP_PASSWORD")
+
+	from := "karanidancan120@gmail.com"
+	password := "nmae wxfz xcpl cxnbf"
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 	if from ==""{

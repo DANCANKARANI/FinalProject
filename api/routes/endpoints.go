@@ -23,7 +23,7 @@ func RegisterEndpoints() {
 
 	// Configure CORS
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000", 
+		AllowOrigins:     "http://localhost:3000,medicare-t9y1.onrender.com", 
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS", 
 		AllowHeaders:     "Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers, X-Patient-ID", 
 		AllowCredentials: true, 
