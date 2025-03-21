@@ -53,16 +53,22 @@ func Login(c *fiber.Ctx) error {
         return utilities.ShowError(c, err.Error(), 1, map[string][]string{"errors": {err.Error()}})
     }
 
-    // Set token cookie
+    domain := c.Hostname()
+    if domain == "localhost" {
+        domain = "localhost"
+    } else {
+        domain = "ehospital-ashy.vercel.app"
+    }
+    
     c.Cookie(&fiber.Cookie{
         Name:     "Authorization",
         Value:    tokenString,
-        Expires:  time.Now().Add(time.Hour * 24),
-        HTTPOnly: true, // Prevent client-side JavaScript from accessing the cookie
-        Secure:   false, // Disable Secure for development (enable in production)
-        SameSite: "Lax", // Allow cookies to be sent with top-level navigations
-        Domain:   "localhost", // Match the frontend domain
-        Path:     "/", // Make the cookie accessible across the entire site
+        Expires:  time.Now().Add(24 * time.Hour),
+        HTTPOnly: true, // Prevent client-side JavaScript access
+        Secure:   true, // Enable in production
+        SameSite: "Lax",
+        Domain:   domain, // Dynamically set based on request
+        Path:     "/",
     })
 
     // Return success response
