@@ -21,11 +21,14 @@ type Claims struct {
 }
 //the function loads .env and return the secretKey
 func LoadSecretKey()string{
-	err := godotenv.Load(".env")
+	my_secret_key := os.Getenv("MY_SECRET_KEY")
+	if my_secret_key==""{
+		err := godotenv.Load(".env")
 	if err != nil {
 		return err.Error()
 	}
-	my_secret_key := os.Getenv("MY_SECRET_KEY")
+	}
+	
 	return my_secret_key
 }
 
