@@ -14,12 +14,11 @@ func CreatePrescription(c *fiber.Ctx) (*Prescription, error) {
 	// Define the request structure
 	type PrescriptionRequest struct {
 		PatientID             uuid.UUID `json:"patient_id"`
+		MadicineName		string		`json:"medicine_name"`
 		DoctorID              uuid.UUID `json:"doctor_id"`
 		Diagnosis             string    `json:"diagnosis"`
 		Dosage				string		`json:"dosage"`
 		Instructions		string		`json:"instructions"`
-		Frequency			uint		`json:"frequency"`
-		PrescribedMedicineIDs []uint    `json:"prescribed_medicine_ids"`
 		Status                string    `json:"status"`
 	}
 
@@ -40,33 +39,16 @@ func CreatePrescription(c *fiber.Ctx) (*Prescription, error) {
 	if req.Diagnosis == "" {
 		return nil, fmt.Errorf("diagnosis is required")
 	}
-	if len(req.PrescribedMedicineIDs) == 0 {
-		return nil, fmt.Errorf("at least one prescribed_medicine_id is required")
-	}
+	if req.MadicineName ==""{
+		return nil, fmt.Errorf("medicine name is required")
 
-	// Fetch the medicines from the database
-	var medicines []Medicine
-	if err := db.Where("id IN ?", req.PrescribedMedicineIDs).Find(&medicines).Error; err != nil {
-		log.Printf("Error fetching medicines: %v", err)
-		return nil, fmt.Errorf("error fetching medicines: %v", err)
-	}
-
-	// Check if all medicines were found
-	if len(medicines) != len(req.PrescribedMedicineIDs) {
-		return nil, fmt.Errorf("some medicines not found")
-	}
-
-	// Check if all medicines are in stock
-	for _, medicine := range medicines {
-		if !medicine.InStock {
-			return nil, fmt.Errorf("medicine %s is out of stock", medicine.Name)
-		}
 	}
 
 	// Create the prescription
 	prescription := Prescription{
 		ID:                 uuid.New(),
 		PatientID:          req.PatientID,
+		MedicineName: 		req.MadicineName,
 		DoctorID:           req.DoctorID,
 		Diagnosis:          req.Diagnosis,
 		Dosage: req.Dosage,
@@ -97,7 +79,7 @@ func GetPrescriptions(c *fiber.Ctx) (*[]Prescription, error) {
 	var prescriptions []Prescription
 
 	// Initialize the query with preloading for PrescribedMedicines, Doctor, and Patient
-	query := db.Preload("PrescribedMedicines").Preload("Doctor").Preload("Patient")
+	query := db.Preload("Doctor").Preload("Patient")
 
 	// Apply filters based on query parameters
 	if status := c.Query("status"); status != "" {
@@ -135,7 +117,7 @@ func UpdatePrescription(c *fiber.Ctx, id string) (*Prescription, error) {
 	var prescription Prescription
 
 	// Fetch the prescription including prescribed medicines (if needed)
-	if err := db.Preload("PrescribedMedicines").First(&prescription, "id = ?", id).Error; err != nil {
+	if err := db.First(&prescription, "id = ?", id).Error; err != nil {
 		return nil, c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Prescription not found"})
 	}
 
@@ -152,6 +134,9 @@ func UpdatePrescription(c *fiber.Ctx, id string) (*Prescription, error) {
 	}
 	if updateData.Status != "" {
 		prescription.Status = updateData.Status
+	}
+	if updateData.MedicineName != ""{
+		prescription.MedicineName=updateData.MedicineName
 	}
 
 	

@@ -55,7 +55,7 @@ func Login(c *fiber.Ctx) error {
 
     domain := c.Hostname()
     if domain == "localhost" {
-        domain = "localhost"
+        domain = "localhost:3000"
     } else {
         domain = "ehospital-ashy.vercel.app"
     }

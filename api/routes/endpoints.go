@@ -7,6 +7,7 @@ import (
 	"github.com/dancankarani/medicare/api/routes/inventory"
 	labtechnician "github.com/dancankarani/medicare/api/routes/lab_technician"
 	"github.com/dancankarani/medicare/api/routes/medicine"
+	"github.com/dancankarani/medicare/api/routes/note"
 	"github.com/dancankarani/medicare/api/routes/patient"
 	"github.com/dancankarani/medicare/api/routes/payments"
 	"github.com/dancankarani/medicare/api/routes/prescription"
@@ -34,6 +35,7 @@ func RegisterEndpoints() {
 	
 
 	payments.SetPaymentsRoutes(app)
+	note.SetNotesRoutes(app)
 	// Register routes
 	socket.SetWebSocketRoutes(app)
 	doctor.SetDoctorsRoutes(app)

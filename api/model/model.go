@@ -33,6 +33,7 @@ type Inventory struct {
 // Prescription struct represents a prescription record.
 type Prescription struct {
     ID                 uuid.UUID      `json:"id" gorm:"type:varchar(36);primaryKey"`
+	MedicineName			string		`json:"medicine_name" gorm:"type:varchar(100)"`
     PatientID          uuid.UUID      `json:"patient_id" gorm:"type:varchar(36);not null"` // Foreign key to Patient
     Patient            Patient        `json:"patient" gorm:"foreignKey:PatientID"`         // Relationship to Patient
     DoctorID           uuid.UUID      `json:"doctor_id" gorm:"type:varchar(36);not null"`   // Foreign key to Doctor
@@ -72,6 +73,7 @@ type Patient struct {
 	TriageLevel      string         `json:"triage_level" gorm:"type:varchar(20)"` // Red, Yellow, Green
 	InitialVitals    string         `json:"initial_vitals" gorm:"type:text"` // JSON or stringified vitals
 	EmergencyNotes   string         `json:"emergency_notes" gorm:"type:text"` // Additional notes for emergency cases
+	Notes           []Note         `json:"notes" gorm:"foreignKey:PatientID"` // One-to-Many relationship
 
 	// Timestamps
 	CreatedAt        time.Time      `json:"created_at" gorm:"autoCreateTime"`
@@ -162,4 +164,14 @@ type ClinicBooking struct {
     DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
     // Relationships
     Patient Patient `gorm:"foreignKey:PatientID;constraint:OnDelete:CASCADE" json:"patient"`
+}
+
+type Note struct {
+	ID        uuid.UUID      `json:"id" gorm:"type:varchar(36);primaryKey"`
+	Notes     string         `json:"notes" gorm:"type:text"`
+	PatientID uuid.UUID      `json:"patient_id" gorm:"type:varchar(36);index"` // Foreign key
+	Patient   Patient        `json:"-" gorm:"foreignKey:PatientID;constraint:OnDelete:CASCADE"`
+	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"` // Soft delete
 }

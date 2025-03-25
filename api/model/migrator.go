@@ -6,6 +6,7 @@ func DbMigrator() {
 	fmt.Println("initializing db migrator")
 	db.AutoMigrate(
 		&ClinicBooking{},
+		&Note{},
 		&User{},
 		&Billing{},
 		&Payment{},
