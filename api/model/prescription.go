@@ -71,8 +71,6 @@ func CreatePrescription(c *fiber.Ctx) (*Prescription, error) {
 		Diagnosis:          req.Diagnosis,
 		Dosage: req.Dosage,
 		Instructions: req.Instructions,
-		Frequency: req.Frequency,
-		PrescribedMedicines: medicines,
 		Status:             req.Status,
 		CreatedAt:          time.Now(),
 		UpdatedAt:          time.Now(),
@@ -156,16 +154,7 @@ func UpdatePrescription(c *fiber.Ctx, id string) (*Prescription, error) {
 		prescription.Status = updateData.Status
 	}
 
-	// Handle PrescribedMedicines if provided in the request (optional, based on requirements)
-	if len(updateData.PrescribedMedicines) > 0 {
-		// Here, you might want to handle the medicines in the request:
-		// - Add new medicines
-		// - Remove old ones (or reset the list entirely, depending on your use case)
-		// For example, you might just replace the existing medicines with the new ones provided.
-
-		// This example just replaces the existing medicines:
-		prescription.PrescribedMedicines = updateData.PrescribedMedicines
-	}
+	
 
 	// Update timestamp
 	prescription.UpdatedAt = time.Now()

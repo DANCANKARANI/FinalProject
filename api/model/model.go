@@ -13,7 +13,6 @@ type Medicine struct {
 	Form                string         `json:"form" gorm:"type:varchar(50)"` // e.g., tablet, liquid, injection
     InStock             bool          `json:"in_stock" gorm:"default:true"`
     Inventories         []Inventory   `json:"inventories" gorm:"foreignKey:MedicineID"` // One-to-many relationship
-    Prescriptions       []*Prescription `json:"-" gorm:"many2many:prescription_medicines"`
     CreatedAt           time.Time     `json:"created_at" gorm:"autoCreateTime"`
     UpdatedAt           time.Time     `json:"updated_at" gorm:"autoUpdateTime"`
 }
@@ -40,9 +39,7 @@ type Prescription struct {
     Doctor             User           `json:"doctor" gorm:"foreignKey:DoctorID"`           // Relationship to Doctor
     Diagnosis          string         `json:"diagnosis" gorm:"type:text"`
 	Dosage				string		`json:"dosage" gorm:"type:varchar(36)"`
-	Frequency			uint		`json:"frequency" gorm:"type:varchar(36)"`
 	Instructions		string		`json:"instructions" gorm:"type:text"`
-    PrescribedMedicines []Medicine     `json:"prescribed_medicines" gorm:"many2many:prescription_medicines"`
     Status             string         `json:"status" gorm:"type:varchar(20);default:'Pending'"`
     CreatedAt          time.Time      `json:"created_at" gorm:"autoCreateTime"`
     UpdatedAt          time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
