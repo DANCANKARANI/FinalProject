@@ -71,19 +71,6 @@ func EditUser(c *fiber.Ctx, userID uuid.UUID, updatedUser User) (*User, error) {
 		return nil, errors.New("user not found")
 	}
 
-	// Validate required fields
-	if updatedUser.FullName == "" {
-		return nil, errors.New("full name field should not be empty")
-	}
-	if updatedUser.Email == "" {
-		return nil, errors.New("email field should not be empty")
-	}
-	if updatedUser.Username == "" {
-		return nil, errors.New("username field should not be empty")
-	}
-	if updatedUser.Role == "" {
-		return nil, errors.New("role field should not be empty")
-	}
 
 	// Update user details
 	user.FullName = updatedUser.FullName

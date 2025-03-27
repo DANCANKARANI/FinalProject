@@ -15,6 +15,7 @@ type Medicine struct {
     Inventories         []Inventory   `json:"inventories" gorm:"foreignKey:MedicineID"` // One-to-many relationship
     CreatedAt           time.Time     `json:"created_at" gorm:"autoCreateTime"`
     UpdatedAt           time.Time     `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt    		gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }
 
 type Inventory struct {
@@ -39,7 +40,7 @@ type Prescription struct {
     DoctorID           uuid.UUID      `json:"doctor_id" gorm:"type:varchar(36);not null"`   // Foreign key to Doctor
     Doctor             User           `json:"doctor" gorm:"foreignKey:DoctorID"`           // Relationship to Doctor
     Diagnosis          string         `json:"diagnosis" gorm:"type:text"`
-	Dosage				string		`json:"dosage" gorm:"type:varchar(36)"`
+	Dosage				string		`json:"dosage" gorm:"type:varchar(255)"`
 	Instructions		string		`json:"instructions" gorm:"type:text"`
     Status             string         `json:"status" gorm:"type:varchar(20);default:'Pending'"`
     CreatedAt          time.Time      `json:"created_at" gorm:"autoCreateTime"`

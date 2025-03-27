@@ -12,7 +12,7 @@ func SetDoctorsRoutes(app *fiber.App) {
 	
 	doctorGroup := auth.Group("/",user.JWTMiddleware)
 	doctorGroup.Post("/",controller.CreateUserHandler)
-	doctorGroup.Put("/:id",controller.EditDoctorHandler)
+	doctorGroup.Patch("/:id",controller.EditDoctorHandler)
 	doctorGroup.Get("/all",controller.GetDoctorsHandler)
 	doctorGroup.Get("/users",controller.GetAllUsersHandler)
 	doctorGroup.Get("/",controller.GetUserById)

@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"time"
+
 	"github.com/dancankarani/medicare/api/model"
 	"github.com/dancankarani/medicare/utilities"
 	"github.com/gofiber/fiber/v2"
@@ -12,6 +14,7 @@ func EditDoctorHandler(c *fiber.Ctx) error {
         FullName  string `json:"full_name"`
         Email     string `json:"email"`
         Username  string `json:"username"`
+        DateOfBirth time.Time `json:"date_of_birth"`
         Password  string `json:"password,omitempty"`
         PhoneNumber string `json:"phone_number"`
         Specialty string `json:"specialty"`
@@ -28,22 +31,16 @@ func EditDoctorHandler(c *fiber.Ctx) error {
     }
 
     // Validate email
-    validEmail, err := utilities.ValidateEmail(req.Email)
-    if err != nil {
-        return utilities.ShowError(c, err.Error(), 0, nil)
-    }
+   
 
     // Validate phone number
-    validPhone, err := utilities.ValidatePhoneNumber(req.PhoneNumber, "KE") // Use country code
-    if err != nil {
-        return utilities.ShowError(c, err.Error(), 0, nil)
-    }
-
+   
     updatedUser := model.User{
         FullName: req.FullName,
-        Email:    *validEmail,
+        Email:    req.Email,
         Username: req.Username,
-        PhoneNumber: validPhone,
+        DateOfBirth: req.DateOfBirth,
+        PhoneNumber: req.PhoneNumber,
         Password: req.Password,
     }
 
