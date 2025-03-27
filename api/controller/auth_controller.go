@@ -83,7 +83,7 @@ func CreateUserHandler(c *fiber.Ctx) error {
 	// Create user and assign as a doctor
 	doctor, err := model.CreateUser(c, user)
 	if err != nil {
-		return utilities.ShowError(c, "Failed to create doctor", fiber.StatusInternalServerError, map[string][]string{
+		return utilities.ShowError(c, "Failed to create user", fiber.StatusInternalServerError, map[string][]string{
 			"error": {err.Error()},
 		})
 	}
